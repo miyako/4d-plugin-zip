@@ -16,9 +16,8 @@ To migrate existing methods, do the following:
  
 New
 ---
-**$4**
 
-Pass 1 to ignore dot files and folders.
+Pass 1 to as the fourth parameter to ignore files and folders whose name begins with a dot.
 
 
 Example
