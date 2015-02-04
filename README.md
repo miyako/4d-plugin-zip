@@ -14,6 +14,12 @@ To migrate existing methods, do the following:
 3. Replace the plugin.
 4. Uncomment the code.
  
+Compatibility
+---
+The v14 package follows the new v14 architecture, you need v14 or above, OS X 10.8+, 32/64 bits, Windows 32/64 bits.
+
+The v11 package follows the v11 architecture, you need v11 or above, including v14, OS X 10.6+ 32 bits, Windows 32/64 bits.
+
 About Unicode
 ---
 The plugin will store the file paths in UTF-8 on both platforms.
