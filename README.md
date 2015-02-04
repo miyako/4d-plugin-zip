@@ -16,9 +16,9 @@ To migrate existing methods, do the following:
  
 Compatibility
 ---
-* The v14 package has the new v14 architecture. You need v14 or above, OS X 10.8+, 32/64 bits, Windows 32/64 bits.
+* The v14 package is built with the new v14 architecture. You need v14 or above, OS X 10.8+, 32/64 bits, Windows 32/64 bits.
 
-* The v11 package has the v11 architecture. You need v11 or above, including v14, OS X 10.6+ 32 bits, Windows 32/64 bits.
+* The v11 package is built with the v11 architecture. You need v11 or above, including v14, OS X 10.6+ 32 bits, Windows 32/64 bits.
 
 About Unicode
 ---
