@@ -26,12 +26,13 @@ Example
 $src:=Get 4D folder(Database folder)
 $dst:=System folder(Desktop)+"test.zip"
 $password:=""
-$ignore_dot_file:=1
+$compression_level:=1
+$ignore_dot:=1
 
-$success:=Zip ($src;$dst;$password;$ignore_dot_file)
+$success:=Zip ($src;$dst;$password;$compression_level;$ignore_dot)
 
 $src:=$dst
-$dst:=System folder(Desktop)+"test-unzip"
+$dst:=System folder(Desktop)+"test"
 
-$success:=Unzip ($src;$dst;$password;$ignore_dot_file)
+$success:=Unzip ($src;$dst;$password;$ignore_dot)
 ```
