@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<verifylog operation="Repair" name="Zip" structure="C:\Users\miyako\Desktop\4d-plugin-zip\Zip.4dbase\Zip.4DB" data="" os="Windows Seven Business Edition, 64-bit Service Pack 1 (build 7601)">
+<start_timer time="2015-02-05T00:35:27+09:00"/>
+<step title="メンテナンスモードでデータベースを開く">
+	<warning warning_type="1" warning_num="139">データベース上に問題があります。 : 前回のデータベースのディスクへの書き込みが終了していません。</warning>
+</step>
+<step title="修復">
+	<step title="自動シーケンス番号定義を圧縮中">
+	</step>
+	<step title="データテーブルをロード中">
+		<step title="データテーブルヘッダーを圧縮中">
+		</step>
+	</step>
+	<step title="テーブル Resources のBLOBを圧縮中">
+	</step>
+	<step title="テーブル Resources のレコードを圧縮中">
+	</step>
+	<step title="テーブル [Table#0] のBLOBを圧縮中">
+	</step>
+	<step title="テーブル [Table#0] のレコードを圧縮中">
+	</step>
+	<step title="検査処理リソースの初期化">
+	</step>
+	<step title="データベースメソッドを検査">
+	</step>
+	<step title="トリガーメソッドを検査">
+	</step>
+	<step title="プロジェクトメソッドを検査">
+		<step title="Method1">
+			<info>Method1 : 2 lines</info>
+		</step>
+		<info>1 project methods</info>
+	</step>
+	<step title="プロジェクトフォームを検査">
+		<info>0 project forms</info>
+	</step>
+	<step title="テーブルフォームを検査">
+		<info>0 table forms</info>
+	</step>
+	<step title="STR# 8010,12">
+	</step>
+	<step title="ユーザー＆グループ情報を検査">
+	</step>
+	<step title="ヘルプTipsを検査">
+	</step>
+	<step title="エクスプローラーのフォルダーを検査">
+		<step title="Trash">
+		</step>
+		<step title="Default Folder">
+		</step>
+		<step title="Default Tables">
+		</step>
+		<step title="Default Forms">
+		</step>
+		<step title="Default Project Methods">
+		</step>
+	</step>
+	<step title="メニューバーとメニューを検査">
+	</step>
+	<step title="Check Lists">
+	</step>
+	<step title="リンクのないメソッドを検査">
+	</step>
+	<step title="以前のファイルをバックアップに移動">
+<move from="C:\Users\miyako\Desktop\4d-plugin-zip\Zip.4dbase\Zip.4DB" to="C:\Users\miyako\Desktop\4d-plugin-zip\Zip.4dbase\Replaced Files (Repairing) 2015-02-05 00-35-27\Zip.4DB">
+</move>	</step>
+	<step title="新しいファイルをデータベースフォルダに作成">
+<move from="C:\Users\miyako\Desktop\4d-plugin-zip\Zip.4dbase\Replaced Files (Repairing) 2015-02-05 00-35-27\_Zip_compacted.4DB" to="C:\Users\miyako\Desktop\4d-plugin-zip\Zip.4dbase\Zip.4DB">
+</move>	</step>
+	<step title="以前のインデックスファイルをバックアップに移動">
+<move from="C:\Users\miyako\Desktop\4d-plugin-zip\Zip.4dbase\Zip.4DIndy" to="C:\Users\miyako\Desktop\4d-plugin-zip\Zip.4dbase\Replaced Files (Repairing) 2015-02-05 00-35-27\Zip.4DIndy">
+</move>	</step>
+	<step title="新しいインデックスファイルをデータベースフォルダに作成">
+<move from="C:\Users\miyako\Desktop\4d-plugin-zip\Zip.4dbase\Replaced Files (Repairing) 2015-02-05 00-35-27\_Zip_compacted.4DIndy" to="C:\Users\miyako\Desktop\4d-plugin-zip\Zip.4dbase\Zip.4DIndy">
+</move>	</step>
+</step>
+<stop_timer time="2015-02-05T00:35:28+09:00" success="false" user_canceled="false"/>
+</verifylog>
