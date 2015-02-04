@@ -37,7 +37,7 @@ You can instruct the plugin to ignore files and folders whose name begins with a
 
 You can specify the compression level (1 to 9).
 
-You can compress an empty folder.
+You can compress an empty folder. (why not?)
 
 When you compress a folder, the top-level folder name is included in the path.
 
