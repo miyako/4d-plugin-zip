@@ -17,8 +17,13 @@ To migrate existing methods, do the following:
 New
 ---
 
-Pass 1 to as the fourth parameter to ignore files and folders whose name begins with a dot.
+You can instruct the plugin to ignore files and folders whose name begins with a dot.
 
+You can specify the compression level (1 to 9).
+
+You can compress an empty folder.
+
+When you compress a folder, the top-level folder name is included in the path.
 
 Example
 ---
