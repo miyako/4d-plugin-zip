@@ -26,7 +26,7 @@ The plugin will store the file paths in UTF-8 on both platforms.
 
 You can safely unarchive such zip files using the plugin.
 
-However, the Windows kernel on Windows 7 and Windows Server 2008 R2 are designed to assume that the paths are stored in the current locale, so UTF-8 paths will be converted wrongly. There is a Microsoft Patch to correct this issue.
+However, the Windows kernel on Windows 7 and Windows Server 2008 R2 assumes that the paths are stored in the current locale, so UTF-8 paths will be converted wrongly. There is a Microsoft Patch to correct this.
 
 [http://support.microsoft.com/kb/2704299](http://support.microsoft.com/kb/2704299)
 
