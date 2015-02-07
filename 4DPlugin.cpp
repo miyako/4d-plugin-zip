@@ -466,122 +466,126 @@ void Zip(sLONG_PTR *pResult, PackagePtr pParams)
     
     //ignore_dot
     unsigned int ignore_dot = Param5.getIntValue();
-    
-    unsigned long CRC; 
-    
-    zipFile hZip = zipOpen64(output, APPEND_STATUS_CREATE);
+ 
+	get_subpaths(Param1, &relative_paths, &absolute_paths, ignore_dot);
+
+    if(relative_paths.size()){
+        
+        unsigned long CRC; 
+        
+        zipFile hZip = zipOpen64(output, APPEND_STATUS_CREATE);
+        
+        if(hZip){
             
-    if(hZip){
-        
-        returnValue.setIntValue(1);
-        
-        get_subpaths(Param1, &relative_paths, &absolute_paths, ignore_dot);
-                
-        zip_fileinfo zi;
-        
-        time_t currentTime;
-        time(&currentTime);
-        
-        struct tm *tm;
-        tm=localtime(&currentTime);
-        
-        zi.tmz_date.tm_sec=tm->tm_sec;
-        zi.tmz_date.tm_min=tm->tm_min;
-        zi.tmz_date.tm_hour=tm->tm_hour;
-        zi.tmz_date.tm_mday=tm->tm_mday;
-        zi.tmz_date.tm_mon=tm->tm_mon;
-        zi.tmz_date.tm_year=tm->tm_year;
-        zi.external_fa = 0;
-        zi.internal_fa = 0;
-        zi.dosDate = 0;
-        zi.internal_fa = zi.external_fa = 0;
-        
-        for (unsigned int i = 0; i < relative_paths.size(); ++i) {
+            returnValue.setIntValue(1);
             
-            PA_YieldAbsolute();
+            zip_fileinfo zi;
             
-            relative_path_t relative_path = relative_paths.at(i);
-            absolute_path_t absolute_path = absolute_paths.at(i); 
+            time_t currentTime;
+            time(&currentTime);
             
-            if(password.length()){
+            struct tm *tm;
+            tm=localtime(&currentTime);
+            
+            zi.tmz_date.tm_sec=tm->tm_sec;
+            zi.tmz_date.tm_min=tm->tm_min;
+            zi.tmz_date.tm_hour=tm->tm_hour;
+            zi.tmz_date.tm_mday=tm->tm_mday;
+            zi.tmz_date.tm_mon=tm->tm_mon;
+            zi.tmz_date.tm_year=tm->tm_year;
+            zi.external_fa = 0;
+            zi.internal_fa = 0;
+            zi.dosDate = 0;
+            zi.internal_fa = zi.external_fa = 0;
+            
+            for (unsigned int i = 0; i < relative_paths.size(); ++i) {
                 
-                CRC = crc32(0L, Z_NULL, 0);
+                PA_YieldAbsolute();
                 
-                std::ifstream ifs_crc(absolute_path.c_str(), std::ios::in|std::ios::binary);
+                relative_path_t relative_path = relative_paths.at(i);
+                absolute_path_t absolute_path = absolute_paths.at(i); 
                 
-                if(ifs_crc.is_open()){
+                if(password.length()){
                     
-                    std::vector<uint8_t> buf(BUFFER_SIZE);
+                    CRC = crc32(0L, Z_NULL, 0);
                     
-                    while(ifs_crc.good()){
+                    std::ifstream ifs_crc(absolute_path.c_str(), std::ios::in|std::ios::binary);
+                    
+                    if(ifs_crc.is_open()){
                         
-                        PA_YieldAbsolute();
+                        std::vector<uint8_t> buf(BUFFER_SIZE);
                         
-                        ifs_crc.read((char *)&buf[0], BUFFER_SIZE);
+                        while(ifs_crc.good()){
+                            
+                            PA_YieldAbsolute();
+                            
+                            ifs_crc.read((char *)&buf[0], BUFFER_SIZE);
+                            
+                            CRC = crc32(CRC, (const Bytef *)&buf[0], ifs_crc.gcount());
+                            
+                        }
                         
-                        CRC = crc32(CRC, (const Bytef *)&buf[0], ifs_crc.gcount());
+                        ifs_crc.close();
                         
                     }
                     
-                    ifs_crc.close();
+                    if(zipOpenNewFileInZip3_64(hZip,
+                                               relative_path.c_str(),
+                                               &zi,
+                                               NULL, 0,
+                                               NULL, 0,
+                                               NULL,
+                                               Z_DEFLATED,
+                                               level,
+                                               0, 15, 8, Z_DEFAULT_STRATEGY,
+                                               (const char *)password.c_str(), CRC, 1) != 0){
+                        returnValue.setIntValue(0);
+                        break;
+                    }
+                    
+                }else{
+                    
+                    if(zipOpenNewFileInZip64(hZip,
+                                             relative_path.c_str(),
+                                             &zi,
+                                             NULL, 0,
+                                             NULL, 0,
+                                             NULL,
+                                             Z_DEFLATED,
+                                             level,
+                                             0) != 0){
+                        returnValue.setIntValue(0);
+                        break;
+                    }
                     
                 }
                 
-                if(zipOpenNewFileInZip3_64(hZip,
-                                           relative_path.c_str(),
-                                           &zi,
-                                           NULL, 0,
-                                           NULL, 0,
-                                           NULL,
-                                           Z_DEFLATED,
-                                           level,
-                                           0, 15, 8, Z_DEFAULT_STRATEGY,
-                                           (const char *)password.c_str(), CRC, 1) != 0){
-                    returnValue.setIntValue(0);
-                    break;
+                std::ifstream ifs(absolute_path.c_str(), std::ios::in|std::ios::binary);
+                
+                if(ifs.is_open()){
+                    
+                    std::vector<uint8_t> buf(BUFFER_SIZE);
+                    
+                    while(ifs.good()){
+                        PA_YieldAbsolute();
+                        ifs.read((char *)&buf[0], BUFFER_SIZE);
+                        zipWriteInFileInZip(hZip, (char *)&buf[0], ifs.gcount()); 
+                    }
+                    
+                    ifs.close();
+                    
                 }
                 
-            }else{
-                
-                if(zipOpenNewFileInZip64(hZip,
-                                         relative_path.c_str(),
-                                         &zi,
-                                         NULL, 0,
-                                         NULL, 0,
-                                         NULL,
-                                         Z_DEFLATED,
-                                         level,
-                                         0) != 0){
-                    returnValue.setIntValue(0);
-                    break;
-                }
+                zipCloseFileInZip(hZip);
                 
             }
             
-            std::ifstream ifs(absolute_path.c_str(), std::ios::in|std::ios::binary);
+            zipClose(hZip, NULL);
             
-            if(ifs.is_open()){
-                
-                std::vector<uint8_t> buf(BUFFER_SIZE);
-                
-                while(ifs.good()){
-                    PA_YieldAbsolute();
-                    ifs.read((char *)&buf[0], BUFFER_SIZE);
-                    zipWriteInFileInZip(hZip, (char *)&buf[0], ifs.gcount()); 
-                }
-                
-                ifs.close();
-                
-            }
-            
-            zipCloseFileInZip(hZip);
-            
-        }
-        
-        zipClose(hZip, NULL);
+        }        
         
     }
-    
+        
     returnValue.setReturn(pResult);
 }
 

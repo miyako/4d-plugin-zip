@@ -131,7 +131,6 @@
 		089C166AFE841209C02AAC07 /* Zip */ = {
 			isa = PBXGroup;
 			children = (
-				D1C6B87F1A82068E00A7AB59 /* libz.1.dylib */,
 				08FB77ADFE841716C02AAC07 /* Source */,
 				089C167CFE841241C02AAC07 /* Resources */,
 				089C1671FE841209C02AAC07 /* External Frameworks and Libraries */,
@@ -143,6 +142,7 @@
 		089C1671FE841209C02AAC07 /* External Frameworks and Libraries */ = {
 			isa = PBXGroup;
 			children = (
+				D1C6B87F1A82068E00A7AB59 /* libz.1.dylib */,
 				08EA7FFBFE8413EDC02AAC07 /* Carbon.framework */,
 				D130064E12F02D9700702C0E /* Cocoa.framework */,
 			);
