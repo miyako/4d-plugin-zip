@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VariablesViewState
+   version = "1.0">
+   <ContextStates>
+      <ContextState
+         contextName = "Zip(long*, unsigned char**):4DPlugin.cpp">
+         <PersistentStrings>
+            <PersistentString
+               value = "__upath.size()">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "zipOpenNewFileInZip4_64:zip.c">
+         <PersistentStrings>
+            <PersistentString
+               value = "zipfi-&gt;external_fa">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "get_subpaths(C_TEXT&amp;, std::vector&lt;std::string, std::allocator&lt;std::string&gt; &gt;*, std::vector&lt;std::string, std::allocator&lt;std::string&gt; &gt;*, int, int):4DPlugin.cpp">
+         <PersistentStrings>
+            <PersistentString
+               value = "[dirEnum nextObject]">
+            </PersistentString>
+            <PersistentString
+               value = "[path lastPathComponent] ">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+   </ContextStates>
+</VariablesViewState>

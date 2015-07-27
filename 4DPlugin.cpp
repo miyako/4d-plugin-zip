@@ -346,7 +346,8 @@ void get_subpaths(wstring& path,
 void get_subpaths(C_TEXT& Param, 
                   relative_paths_t *relative_paths, 
                   absolute_paths_t *absolute_paths, 
-                  int ignore_dot){
+                  bool ignore_dot,
+                  bool with_atttributes){
     
     relative_paths->clear();
     absolute_paths->clear();
@@ -357,57 +358,130 @@ void get_subpaths(C_TEXT& Param,
     copy_path(Param, spath);
     NSString *path = (NSString *)CFStringCreateWithFileSystemRepresentation(kCFAllocatorDefault, spath.c_str());	
     
-    //semantically the same string but the result from subpathsOfDirectoryAtPath is wrong
+    //semantically the same string but the result from subpathsOfDirectoryAtPath is wrong if we use this:
     //NSString *path = Param.copyPath();
     
     NSFileManager *fm = [[NSFileManager alloc]init];
     
     BOOL isDirectory = YES;
     
-    if([fm fileExistsAtPath:path isDirectory:&isDirectory]){
+    if(with_atttributes){
+    
+        NSDictionary *attributes = [fm attributesOfItemAtPath:path error:nil];
         
-        if(isDirectory){
+        if(attributes){
+            if([[attributes valueForKey:NSFileType]isEqualToString:NSFileTypeSymbolicLink] 
+            || [[attributes valueForKey:NSFileType]isEqualToString:NSFileTypeRegular]){
+                
+                //over-ride ignore_dot, this is top level
+                relative_paths->push_back(std::string([[path lastPathComponent]UTF8String]));
+                absolute_paths->push_back(spath);
+                
+            }else
+            if([[attributes valueForKey:NSFileType]isEqualToString:NSFileTypeDirectory]){
             
-            NSString *folderName = [[path lastPathComponent]stringByAppendingString:@"/"];
-            NSArray *paths = [fm subpathsOfDirectoryAtPath:path error:NULL];
-            
-            //a folder with contents
-            for(NSUInteger i = 0; i < [paths count]; i++){
+                NSString *folderName = [[path lastPathComponent]stringByAppendingString:@"/"];
+                NSString *folderPath = [path stringByDeletingLastPathComponent];
+                if(![[folderPath substringFromIndex:[folderPath length]]isEqualToString:@"/"]){
+                    folderPath = [folderPath stringByAppendingString:@"/"];
+                }
                 
-                PA_YieldAbsolute();
+                NSURL *baseUrl = [NSURL fileURLWithPath:path isDirectory:YES]; 
+                NSString *basePath = [baseUrl path];
+                if(![[basePath substringFromIndex:[basePath length]]isEqualToString:@"/"]){
+                    basePath = [basePath stringByAppendingString:@"/"];
+                }
                 
-                NSString *itemPath = [paths objectAtIndex:i];   
-                NSString *itemFullPath = [path stringByAppendingPathComponent:itemPath];  
+                relative_paths->push_back([folderName UTF8String]);	
+                absolute_paths->push_back([basePath UTF8String]);
+                                
+                NSDirectoryEnumerator *dirEnum = [fm enumeratorAtURL:baseUrl 
+                includingPropertiesForKeys:[NSArray arrayWithObjects:NSURLIsDirectoryKey, NSURLIsHiddenKey, nil]
+                options:0
+                errorHandler:nil];
                 
-                if([fm fileExistsAtPath:itemFullPath isDirectory:&isDirectory]){
+                while(NSURL *u = [dirEnum nextObject]){
+                
+                    PA_YieldAbsolute();
                     
-                    if(isDirectory)
-                        itemPath = [itemPath stringByAppendingString:@"/"];
+                    NSNumber *isDirectory;
+                    [u getResourceValue:&isDirectory forKey:NSURLIsDirectoryKey error:nil];
                     
-                    absolute_path_t absolute_path = [itemFullPath UTF8String];
-                    relative_path_t relative_path = [[folderName stringByAppendingString:itemPath]UTF8String];
+                    NSNumber *isHidden;
+                    [u getResourceValue:&isHidden forKey:NSURLIsHiddenKey error:nil];
                     
-                    if(!ignore_dot || ((relative_path.at(0) != '.') && relative_path.find("/.") == std::string::npos)){
+                    NSString *fullPath = [u path];
+
+                    if([isDirectory boolValue])
+                            fullPath = [fullPath stringByAppendingString:@"/"];
+                       
+                    absolute_path_t absolute_path = [fullPath UTF8String];
+                    relative_path_t relative_path = [[fullPath substringFromIndex:[folderPath length]]UTF8String];
+                    
+                    if(!ignore_dot || (((relative_path.at(0) != '.') && relative_path.find("/.") == std::string::npos) && ![isHidden boolValue])){
                         relative_paths->push_back(relative_path);	
                         absolute_paths->push_back(absolute_path);
                     }
-
-                }				
+                }
                 
+
             }
+
+
+        }//attributes
+        
+    }else{
+    
+        if([fm fileExistsAtPath:path isDirectory:&isDirectory]){
             
-            //an empty folder (over-ride ignore_dot, this is top level)
-            if(!relative_paths->size()){
+            if(isDirectory){
+                
+                NSString *folderName = [[path lastPathComponent]stringByAppendingString:@"/"];
+
+                NSURL *baseUrl = [NSURL fileURLWithPath:path isDirectory:YES]; 
+                NSString *basePath = [baseUrl path];
+                if(![[basePath substringFromIndex:[basePath length]]isEqualToString:@"/"]){
+                    basePath = [basePath stringByAppendingString:@"/"];
+                }
+
+                NSArray *paths = (NSMutableArray *)[fm subpathsOfDirectoryAtPath:path error:NULL];
+
                 relative_paths->push_back([folderName UTF8String]);	
+                absolute_paths->push_back([basePath UTF8String]);
+
+                //a folder with contents
+                for(NSUInteger i = 0; i < [paths count]; i++){
+                    
+                    PA_YieldAbsolute();
+                    
+                    NSString *itemPath = [paths objectAtIndex:i];   
+                    NSString *itemFullPath = [path stringByAppendingPathComponent:itemPath];  
+                    
+                    if([fm fileExistsAtPath:itemFullPath isDirectory:&isDirectory]){
+                        
+                        if(isDirectory)
+                            itemPath = [itemPath stringByAppendingString:@"/"];
+                        
+                        absolute_path_t absolute_path = [itemFullPath UTF8String];
+                        relative_path_t relative_path = [[folderName stringByAppendingString:itemPath]UTF8String];
+                        
+                        if(!ignore_dot || ((relative_path.at(0) != '.') && relative_path.find("/.") == std::string::npos)){
+                            relative_paths->push_back(relative_path);	
+                            absolute_paths->push_back(absolute_path);
+                        }
+
+                    }				
+                    
+                }
+                
+            }else{	
+                //a file (over-ride ignore_dot, this is top level)
+                relative_paths->push_back(std::string([[path lastPathComponent]UTF8String]));
                 absolute_paths->push_back(spath);
             }
             
-        }else{	
-            //a file (over-ride ignore_dot, this is top level)
-            relative_paths->push_back(std::string([[path lastPathComponent]UTF8String]));
-            absolute_paths->push_back(spath);
-        }
-        
+        }    
+            
     }
     
     [path release];	
@@ -448,7 +522,7 @@ void Zip(sLONG_PTR *pResult, PackagePtr pParams)
     Param3.copyUTF8String(&password);
     
     //dst
-#if VERSIONMAC
+#if VERSIONMAC    
     CUTF8String output_path;
     Param2.copyPath(&output_path);
     const char *output = (const char*)output_path.c_str();
@@ -464,10 +538,17 @@ void Zip(sLONG_PTR *pResult, PackagePtr pParams)
         level = 9;
     }
     
-    //ignore_dot
-    unsigned int ignore_dot = Param5.getIntValue();
+    unsigned int flags = Param5.getIntValue();
+    
+    bool ignore_dot = !!(flags & 1L);
+    
+#if VERSIONMAC    
+    bool with_atttributes = !!(flags & 2L);
+#else
+    bool with_atttributes = false;    
+#endif
  
-	get_subpaths(Param1, &relative_paths, &absolute_paths, ignore_dot);
+	get_subpaths(Param1, &relative_paths, &absolute_paths, ignore_dot, with_atttributes);
 
     if(relative_paths.size()){
         
@@ -492,18 +573,56 @@ void Zip(sLONG_PTR *pResult, PackagePtr pParams)
             zi.tmz_date.tm_hour=tm->tm_hour;
             zi.tmz_date.tm_mday=tm->tm_mday;
             zi.tmz_date.tm_mon=tm->tm_mon;
-            zi.tmz_date.tm_year=tm->tm_year;
+            zi.tmz_date.tm_year=tm->tm_year;            
             zi.external_fa = 0;
             zi.internal_fa = 0;
             zi.dosDate = 0;
-            zi.internal_fa = zi.external_fa = 0;
-            
+                        
+#if VERSIONMAC
+            NSFileManager *fm = [[NSFileManager alloc]init];
+#endif                       
+
             for (unsigned int i = 0; i < relative_paths.size(); ++i) {
                 
                 PA_YieldAbsolute();
                 
                 relative_path_t relative_path = relative_paths.at(i);
                 absolute_path_t absolute_path = absolute_paths.at(i); 
+                
+                zi.external_fa = 0;
+#if VERSIONMAC  
+
+                    if(with_atttributes){
+                    
+                        NSDictionary *attributes = [fm attributesOfItemAtPath:[NSString stringWithUTF8String:(const char *)absolute_path.c_str()]error:nil];
+                        
+                        if(attributes){
+                             
+                            if([[attributes valueForKey:NSFileType]isEqualToString:NSFileTypeCharacterSpecial]){
+                                zi.external_fa = 0x20000000;
+                            }else
+                            if([[attributes valueForKey:NSFileType]isEqualToString:NSFileTypeDirectory]){
+                                zi.external_fa = 0x40000000;
+                            }else
+                            if([[attributes valueForKey:NSFileType]isEqualToString:NSFileTypeBlockSpecial]){
+                                zi.external_fa = 0x60000000;
+                            }else
+                            if([[attributes valueForKey:NSFileType]isEqualToString:NSFileTypeRegular]){
+                                zi.external_fa = 0x80000000;
+                            }else
+                            if(([[attributes valueForKey:NSFileType]isEqualToString:NSFileTypeSymbolicLink])){
+                                zi.external_fa = 0xA0000000;
+                            }else
+                            if([[attributes valueForKey:NSFileType]isEqualToString:NSFileTypeSocket]){
+                                zi.external_fa = 0xC0000000;
+                            }
+
+                            zi.external_fa |= ([[attributes valueForKey:NSFilePosixPermissions]shortValue] << 16L);
+                                        
+                        }//attributes 
+                        
+                    }//with_atttributes
+#endif                
                 
                 if(password.length()){
                     
@@ -559,27 +678,48 @@ void Zip(sLONG_PTR *pResult, PackagePtr pParams)
                     }
                     
                 }
+               
+                bool isSymbolicLink = false;
                 
-                std::ifstream ifs(absolute_path.c_str(), std::ios::in|std::ios::binary);
+#if VERSIONMAC
+                if(with_atttributes){
+                    NSString *symbolicPath = (NSString *)CFStringCreateWithFileSystemRepresentation(kCFAllocatorDefault, absolute_path.c_str());
+                    NSString *destinationPath = [fm destinationOfSymbolicLinkAtPath:symbolicPath error:nil];
+                    if(destinationPath){
+                        std::string destinationPath_utf8([destinationPath UTF8String]);
+                        zipWriteInFileInZip(hZip, (char *)destinationPath_utf8.c_str(), destinationPath_utf8.size()); 
+                        [symbolicPath release];
+                        isSymbolicLink = TRUE;
+                    }  
+                }
+#endif                
+    
+                if(!isSymbolicLink){
                 
-                if(ifs.is_open()){
-                    
-                    std::vector<uint8_t> buf(BUFFER_SIZE);
-                    
-                    while(ifs.good()){
-                        PA_YieldAbsolute();
-                        ifs.read((char *)&buf[0], BUFFER_SIZE);
-                        zipWriteInFileInZip(hZip, (char *)&buf[0], ifs.gcount()); 
+                    std::ifstream ifs(absolute_path.c_str(), std::ios::in|std::ios::binary);
+                
+                    if(ifs.is_open()){
+                        
+                        std::vector<uint8_t> buf(BUFFER_SIZE);
+                        
+                        while(ifs.good()){
+                            PA_YieldAbsolute();
+                            ifs.read((char *)&buf[0], BUFFER_SIZE);
+                            zipWriteInFileInZip(hZip, (char *)&buf[0], ifs.gcount()); 
+                        }
+                        
+                        ifs.close();
+                        
                     }
-                    
-                    ifs.close();
-                    
+                
                 }
                 
                 zipCloseFileInZip(hZip);
                 
             }
-            
+#if VERSIONMAC
+            [fm release];
+#endif             
             zipClose(hZip, NULL);
             
         }        
