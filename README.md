@@ -16,7 +16,7 @@ To migrate existing methods, do the following:
  
 **CAUTION**
 
-Do not use this plugin to archive apps on Mac. The zip program is not fully capable of handing symbolic links.
+Do not use this plugin to archive apps on Mac. This zip program is not fully capable of handing symbolic links.
 
 Rather try [ditto](https://developer.apple.com/library/mac/documentation/Darwin/Reference/ManPages/man1/ditto.1.html) or [zip](https://developer.apple.com/library/mac/documentation/Darwin/Reference/ManPages/man1/zip.1.html) with the ```-y``` option.
 
