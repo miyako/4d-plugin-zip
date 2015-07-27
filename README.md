@@ -14,6 +14,18 @@ To migrate existing methods, do the following:
 3. Replace the plugin.
 4. Uncomment the code.
  
+**CAUTION**
+
+Do not use this plugin to archive apps on Mac. The zip program is not fully capable of handing symbolic links.
+
+Rather try
+
+```sh
+ditto -c -k --sequesterRsrc --keepParent Product.app Product.app.zip
+```
+
+As does the system Archive Utility.
+
 Compatibility
 ---
 * The v14 package is built with the new v14 architecture. Supports v14 or above, OS X 10.8+, 32/64 bits, Windows 32/64 bits.
