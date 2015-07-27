@@ -16,12 +16,32 @@ To migrate existing methods, do the following:
  
 **CAUTION**
 
-Do not use this plugin to archive apps on Mac. This zip program is not fully capable of handing symbolic links.
+~~Do not use this plugin to archive apps on Mac. This zip program is not fully capable of handing symbolic links.~~
 
 Rather try [ditto](https://developer.apple.com/library/mac/documentation/Darwin/Reference/ManPages/man1/ditto.1.html) or [zip](https://developer.apple.com/library/mac/documentation/Darwin/Reference/ManPages/man1/zip.1.html) with the ```-y``` option.
 
 ```sh
 ditto -c -k --sequesterRsrc --keepParent Product.app Product.app.zip
+```
+
+```Zip``` now supports UNIX file attributes.
+
+```
+$src:=System folder(Desktop)+"src"
+$dst:=System folder(Desktop)+"src.zip"
+$password:=""
+$compression_level:=1
+
+  //simply ignore dot-files and folders
+$ignore_hidden:=1
+
+  //new in v1.1
+  //support unix permissions (755, etc)
+  //support symlinks (relative or absolute)
+  //when used with ignore_hidden, also ignore items with "hidden" flag
+$with_atttributes:=2
+
+$success:=Zip ($src;$dst;$password;$compression_level;$with_atttributes)
 ```
 
 Compatibility
