@@ -18,13 +18,13 @@ To migrate existing methods, do the following:
 
 Do not use this plugin to archive apps on Mac. The zip program is not fully capable of handing symbolic links.
 
-Rather try
+Rather try [ditto](https://developer.apple.com/library/mac/documentation/Darwin/Reference/ManPages/man1/ditto.1.html)
 
 ```sh
 ditto -c -k --sequesterRsrc --keepParent Product.app Product.app.zip
 ```
 
-As does the system Archive Utility.
+As [does Archive Utility](http://stackoverflow.com/questions/7748027/use-archive-utility-app-from-command-line-or-with-applescript).
 
 Compatibility
 ---
