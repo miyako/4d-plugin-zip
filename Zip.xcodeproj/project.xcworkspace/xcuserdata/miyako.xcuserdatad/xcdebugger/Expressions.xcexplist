@@ -3,10 +3,36 @@
    version = "1.0">
    <ContextStates>
       <ContextState
-         contextName = "Zip(long*, unsigned char**):4DPlugin.cpp">
+         contextName = "Unzip(long*, unsigned char**):4DPlugin.cpp">
          <PersistentStrings>
             <PersistentString
-               value = "__upath.size()">
+               value = "fileInfo">
+            </PersistentString>
+            <PersistentString
+               value = "isSymbolicLink">
+            </PersistentString>
+            <PersistentString
+               value = "relative_path">
+            </PersistentString>
+            <PersistentString
+               value = " 0b001000000000000000">
+            </PersistentString>
+            <PersistentString
+               value = "0xA000 &gt;&gt;11L">
+            </PersistentString>
+            <PersistentString
+               value = "with_atttributes">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "get_subpaths(C_TEXT&amp;, std::vector&lt;std::string, std::allocator&lt;std::string&gt; &gt;*, std::vector&lt;std::string, std::allocator&lt;std::string&gt; &gt;*, int, int):4DPlugin.cpp">
+         <PersistentStrings>
+            <PersistentString
+               value = "[dirEnum nextObject]">
+            </PersistentString>
+            <PersistentString
+               value = "[path lastPathComponent] ">
             </PersistentString>
          </PersistentStrings>
       </ContextState>
@@ -19,13 +45,10 @@
          </PersistentStrings>
       </ContextState>
       <ContextState
-         contextName = "get_subpaths(C_TEXT&amp;, std::vector&lt;std::string, std::allocator&lt;std::string&gt; &gt;*, std::vector&lt;std::string, std::allocator&lt;std::string&gt; &gt;*, int, int):4DPlugin.cpp">
+         contextName = "Zip(long*, unsigned char**):4DPlugin.cpp">
          <PersistentStrings>
             <PersistentString
-               value = "[dirEnum nextObject]">
-            </PersistentString>
-            <PersistentString
-               value = "[path lastPathComponent] ">
+               value = "__upath.size()">
             </PersistentString>
          </PersistentStrings>
       </ContextState>

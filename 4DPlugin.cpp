@@ -76,8 +76,15 @@ void Unzip(sLONG_PTR *pResult, PackagePtr pParams)
     const wchar_t *output = (const wchar_t*)Param2.getUTF16StringPtr();    
 #endif  
     
-    //ignore_dot
-    unsigned int ignore_dot = Param4.getIntValue();  
+    unsigned int flags = Param4.getIntValue();
+    
+    bool ignore_dot = !!(flags & 1L);
+    
+#if VERSIONMAC    
+    bool with_atttributes = !!(flags & 2L);
+#else
+    bool with_atttributes = false;    
+#endif
     
     unzFile hUnzip = unzOpen64(input);
     
@@ -91,6 +98,10 @@ void Unzip(sLONG_PTR *pResult, PackagePtr pParams)
         
         relative_path_t relative_path;
         absolute_path_t sub_path, absolute_path;
+
+#if VERSIONMAC
+            NSFileManager *fm = [[NSFileManager alloc]init];
+#endif  
         
         do {
             
@@ -100,7 +111,7 @@ void Unzip(sLONG_PTR *pResult, PackagePtr pParams)
                 returnValue.setIntValue(0);
                 break;
             }
-            
+
             get_relative_path(&szConFilename[0], sub_path, relative_path);
 
             absolute_path = output;
@@ -108,10 +119,13 @@ void Unzip(sLONG_PTR *pResult, PackagePtr pParams)
             
             if(relative_path.size() > 1){
                 if( !ignore_dot || ((relative_path.at(0) != '.') && relative_path.find("/.") == std::string::npos)){
+                    
                     create_parent_folder(absolute_path);
                     
                     if(relative_path.at(relative_path.size() - 1) == folder_separator){
+                    
                         create_folder(absolute_path);
+                        
                     }
 
                     if(password.length()){
@@ -126,22 +140,61 @@ void Unzip(sLONG_PTR *pResult, PackagePtr pParams)
                         }
                     }
                     
-                    std::ofstream ofs(absolute_path.c_str(), std::ios::out|std::ios::binary);
+                    bool symbolicLinkCreated = false;
+#if VERSIONMAC                     
+                    if(with_atttributes){
                     
-                    if(ofs.is_open()){
+                        if(((fileInfo.external_fa >> 16L) & 0xA000) == 0xA000){
                         
-                        std::vector<uint8_t> buf(BUFFER_SIZE);
-                        std::streamsize size;
+                            std::vector<char> buf(PATH_MAX);
+                            int len = unzReadCurrentFile(hUnzip, &buf[0], PATH_MAX);
+                            
+                            if(len > 0){
+                                NSString *destinationPath =[[NSString alloc]initWithBytes:&buf[0] length:len encoding:NSUTF8StringEncoding];
+                                NSString *fullPath = [[NSString alloc]initWithUTF8String:absolute_path.c_str()];
+                                symbolicLinkCreated = [fm createSymbolicLinkAtPath:fullPath withDestinationPath:destinationPath error:nil];
+                                [fullPath release];
+                                [destinationPath release];
+                            }                        
                         
-                        while ((size = unzReadCurrentFile(hUnzip, &buf[0], BUFFER_SIZE)) > 0){
-                            PA_YieldAbsolute();
-                            ofs.write((const char *)&buf[0], size);
                         }
+                         
+                    }
+#endif 
+                    if(!symbolicLinkCreated){
+                        std::ofstream ofs(absolute_path.c_str(), std::ios::out|std::ios::binary);
                         
-                        ofs.close();
-                        
+                        if(ofs.is_open()){
+                            
+                            std::vector<uint8_t> buf(BUFFER_SIZE);
+                            std::streamsize size;
+                            
+                            while ((size = unzReadCurrentFile(hUnzip, &buf[0], BUFFER_SIZE)) > 0){
+                                PA_YieldAbsolute();
+                                ofs.write((const char *)&buf[0], size);
+                            }
+                            
+                            ofs.close();
+                            
+                        }                    
+                    
                     }
                     
+#if VERSIONMAC  
+                    if(with_atttributes){
+                    
+                        short permission = (fileInfo.external_fa >> 16L) & 0x01FF;
+                        
+                        NSDictionary *itemAttributes = [NSDictionary 
+                        dictionaryWithObject:[NSNumber numberWithShort:permission] 
+                        forKey:NSFilePosixPermissions];
+                    
+                        NSString *fullPath = [[NSString alloc]initWithUTF8String:absolute_path.c_str()];
+                        [fm setAttributes:itemAttributes ofItemAtPath:fullPath error:nil];
+                        [fullPath release];
+
+                    }                    
+#endif 
                 }   
                 
             }
@@ -149,7 +202,11 @@ void Unzip(sLONG_PTR *pResult, PackagePtr pParams)
             unzCloseCurrentFile(hUnzip);
             
         } while (unzGoToNextFile(hUnzip) != UNZ_END_OF_LIST_OF_FILE);
-        
+ 
+#if VERSIONMAC
+            [fm release];
+#endif         
+                      
         unzClose(hUnzip);	
     }     
     
