@@ -1,0 +1,1 @@
+﻿{"name":"Zip","id":20000,"commands":[{"theme":"Zip","syntax":"Unzip(&T;&T;&T;&L;&T):L"},{"theme":"Zip","syntax":"Zip(&T;&T;&T;&L;&L;&T):L"}]}
