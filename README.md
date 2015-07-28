@@ -24,7 +24,7 @@ Rather try [ditto](https://developer.apple.com/library/mac/documentation/Darwin/
 ditto -c -k --sequesterRsrc --keepParent Product.app Product.app.zip
 ```
 
-```Zip``` now supports UNIX file attributes.
+```Zip``` and ```Unzip``` now support UNIX file attributes.
 
 ```
 $src:=System folder(Desktop)+"src"
@@ -43,6 +43,24 @@ $with_atttributes:=2
 
 $success:=Zip ($src;$dst;$password;$compression_level;$with_atttributes)
 ```
+
+**Callback methods can be specified**
+
+```
+PROGRESS:=Progress New 
+Progress SET BUTTON ENABLED (PROGRESS;True)
+$success:=Zip ($src;$dst;$password;$compression_level;$with_atttributes;"ZIP_CALLBACK")
+Progress QUIT (PROGRESS)
+
+$src:=$dst
+$dst:=System folder(Desktop)+"dst"
+
+PROGRESS:=Progress New 
+Progress SET BUTTON ENABLED (PROGRESS;True)
+$success:=Unzip ($src;$dst;$password;$with_atttributes;"UNZIP_CALLBACK")
+Progress QUIT (PROGRESS)
+```
+
 
 Compatibility
 ---
