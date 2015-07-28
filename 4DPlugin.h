@@ -31,6 +31,8 @@ typedef std::string relative_path_t;
 
 typedef std::vector<relative_path_t> relative_paths_t;
 
+typedef PA_long32 method_id_t;
+
 #define BUFFER_SIZE 8192
 
 #include <fstream>

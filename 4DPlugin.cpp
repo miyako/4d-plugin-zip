@@ -53,13 +53,15 @@ void Unzip(sLONG_PTR *pResult, PackagePtr pParams)
 	C_TEXT Param2;
 	C_TEXT Param3;
 	C_LONGINT Param4;
+    C_TEXT Param5;
 	C_LONGINT returnValue;
 
 	Param1.fromParamAtIndex(pParams, 1);
 	Param2.fromParamAtIndex(pParams, 2);
 	Param3.fromParamAtIndex(pParams, 3);
 	Param4.fromParamAtIndex(pParams, 4);
-
+    Param5.fromParamAtIndex(pParams, 5);
+    
     //pass
     CUTF8String password;
     Param3.copyUTF8String(&password);
@@ -85,6 +87,10 @@ void Unzip(sLONG_PTR *pResult, PackagePtr pParams)
 #else
     bool with_atttributes = false;    
 #endif
+
+    //callback
+    method_id_t methodId = PA_GetMethodID((PA_Unichar *)Param5.getUTF16StringPtr());
+    bool abortedByCallbackMethod = false;
     
     unzFile hUnzip = unzOpen64(input);
     
@@ -93,6 +99,19 @@ void Unzip(sLONG_PTR *pResult, PackagePtr pParams)
         returnValue.setIntValue(1);
         
         unz_file_info64 fileInfo;
+        unz_global_info64 globalInfo;
+        unz64_file_pos filePos;
+        
+        double number_entry;
+        
+        bool isCallbackActive = false;
+        
+        if(methodId){
+            if(unzGetGlobalInfo64(hUnzip, &globalInfo) == UNZ_OK){
+                number_entry = globalInfo.number_entry;
+                isCallbackActive = true;
+            }
+        }
         
         std::vector<uint8_t> szConFilename(PATH_MAX);
         
@@ -117,6 +136,50 @@ void Unzip(sLONG_PTR *pResult, PackagePtr pParams)
             absolute_path = output;
             absolute_path+= folder_separator + sub_path;
             
+            //callback
+            if(isCallbackActive){
+                
+                double compressed_size = fileInfo.compressed_size;
+                double uncompressed_size = fileInfo.uncompressed_size;
+                    
+                if(unzGetFilePos64(hUnzip, &filePos) == UNZ_OK){
+                
+                    double num_of_file = filePos.num_of_file;
+
+                    PA_Variable	params[6];
+                    params[0] = PA_CreateVariable(eVK_Unistring);
+                    params[1] = PA_CreateVariable(eVK_Unistring);
+                    params[2] = PA_CreateVariable(eVK_Real);
+                    params[3] = PA_CreateVariable(eVK_Real);
+                    params[4] = PA_CreateVariable(eVK_Real);
+                    params[5] = PA_CreateVariable(eVK_Real);
+                    C_TEXT tempUstr;
+                    tempUstr.setUTF8String((const uint8_t *)relative_path.c_str(), relative_path.length());
+                    PA_Unistring methodParam1 = PA_CreateUnistring((PA_Unichar *)tempUstr.getUTF16StringPtr());
+                    PA_SetStringVariable(&params[0], &methodParam1);
+                    tempUstr.setUTF8String((const uint8_t *)absolute_path.c_str(), absolute_path.length());
+                    PA_Unistring methodParam2 = PA_CreateUnistring((PA_Unichar *)tempUstr.getUTF16StringPtr());
+                    PA_SetStringVariable(&params[1], &methodParam2);
+                    
+                    PA_SetRealVariable(&params[2], num_of_file);
+                    PA_SetRealVariable(&params[3], number_entry);
+                    PA_SetRealVariable(&params[4], compressed_size);
+                    PA_SetRealVariable(&params[5], uncompressed_size);  
+                          
+                    PA_Variable result = PA_ExecuteMethodByID(methodId, params, 6);
+                    PA_DisposeUnistring(&methodParam1);
+                    PA_DisposeUnistring(&methodParam2);
+                    
+                    if(PA_GetVariableKind(result) == eVK_Boolean){
+                        
+                        abortedByCallbackMethod = PA_GetBooleanVariable(result);
+                              
+                    }
+                
+                }
+
+            } 
+
             if(relative_path.size() > 1){
                 if( !ignore_dot || ((relative_path.at(0) != '.') && relative_path.find("/.") == std::string::npos)){
                     
@@ -201,7 +264,7 @@ void Unzip(sLONG_PTR *pResult, PackagePtr pParams)
 
             unzCloseCurrentFile(hUnzip);
             
-        } while (unzGoToNextFile(hUnzip) != UNZ_END_OF_LIST_OF_FILE);
+        } while (!abortedByCallbackMethod && (unzGoToNextFile(hUnzip) != UNZ_END_OF_LIST_OF_FILE));
  
 #if VERSIONMAC
             [fm release];
@@ -210,6 +273,10 @@ void Unzip(sLONG_PTR *pResult, PackagePtr pParams)
         unzClose(hUnzip);	
     }     
     
+    if(abortedByCallbackMethod){
+        returnValue.setIntValue(0);
+    }   
+                            
 	returnValue.setReturn(pResult);
 }
 
@@ -561,6 +628,7 @@ void Zip(sLONG_PTR *pResult, PackagePtr pParams)
     C_TEXT Param3;
     C_LONGINT Param4;
     C_LONGINT Param5;
+    C_TEXT Param6;
     C_LONGINT returnValue;
     
     Param1.fromParamAtIndex(pParams, 1);//src
@@ -568,7 +636,8 @@ void Zip(sLONG_PTR *pResult, PackagePtr pParams)
     Param3.fromParamAtIndex(pParams, 3);//pass
     Param4.fromParamAtIndex(pParams, 4);//level
     Param5.fromParamAtIndex(pParams, 5);//ignore_dot    
-  
+    Param6.fromParamAtIndex(pParams, 6);
+    
     //src
     absolute_paths_t absolute_paths;
     relative_paths_t relative_paths;
@@ -605,6 +674,10 @@ void Zip(sLONG_PTR *pResult, PackagePtr pParams)
     bool with_atttributes = false;    
 #endif
  
+    //callback
+    method_id_t methodId = PA_GetMethodID((PA_Unichar *)Param6.getUTF16StringPtr());
+    bool abortedByCallbackMethod = false;
+    
 	get_subpaths(Param1, &relative_paths, &absolute_paths, ignore_dot, with_atttributes);
 
     if(relative_paths.size()){
@@ -634,7 +707,16 @@ void Zip(sLONG_PTR *pResult, PackagePtr pParams)
             zi.external_fa = 0;
             zi.internal_fa = 0;
             zi.dosDate = 0;
-                        
+               
+            double number_entry;
+               
+            bool isCallbackActive = false;
+        
+            if(methodId){
+                    number_entry = relative_paths.size();
+                    isCallbackActive = true; 
+            }            
+                                          
 #if VERSIONMAC
             NSFileManager *fm = [[NSFileManager alloc]init];
 #endif                       
@@ -680,6 +762,41 @@ void Zip(sLONG_PTR *pResult, PackagePtr pParams)
                         
                     }//with_atttributes
 #endif                
+                
+                //callback
+                if(isCallbackActive){
+                
+                    PA_Variable	params[4];
+                    params[0] = PA_CreateVariable(eVK_Unistring);
+                    params[1] = PA_CreateVariable(eVK_Unistring);
+                    params[2] = PA_CreateVariable(eVK_Real);
+                    params[3] = PA_CreateVariable(eVK_Real);
+                    C_TEXT tempUstr;
+                    tempUstr.setUTF8String((const uint8_t *)relative_path.c_str(), relative_path.length());
+                    PA_Unistring methodParam1 = PA_CreateUnistring((PA_Unichar *)tempUstr.getUTF16StringPtr());
+                    PA_SetStringVariable(&params[0], &methodParam1);
+                    tempUstr.setUTF8String((const uint8_t *)absolute_path.c_str(), absolute_path.length());
+                    PA_Unistring methodParam2 = PA_CreateUnistring((PA_Unichar *)tempUstr.getUTF16StringPtr());
+                    PA_SetStringVariable(&params[1], &methodParam2);
+                    
+                    PA_SetRealVariable(&params[2], i+1);
+                    PA_SetRealVariable(&params[3], number_entry);
+                    
+                    PA_Variable result = PA_ExecuteMethodByID(methodId, params, 4);
+                    PA_DisposeUnistring(&methodParam1);
+                    PA_DisposeUnistring(&methodParam2);
+                    
+                    if(PA_GetVariableKind(result) == eVK_Boolean){
+                        
+                        abortedByCallbackMethod = PA_GetBooleanVariable(result);
+               
+                    }
+            
+                }
+                
+                if(abortedByCallbackMethod){
+                    i = number_entry;
+                }
                 
                 if(password.length()){
                     
@@ -782,6 +899,10 @@ void Zip(sLONG_PTR *pResult, PackagePtr pParams)
         }        
         
     }
+        
+    if(abortedByCallbackMethod){
+        returnValue.setIntValue(0);
+    }      
         
     returnValue.setReturn(pResult);
 }
