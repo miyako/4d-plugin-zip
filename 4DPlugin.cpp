@@ -357,7 +357,8 @@ void get_subpaths(wstring& path,
                   absolute_paths_t *absolute_paths,
                   relative_paths_t *relative_paths,
 				  relative_path_t& folder_name,
-                  int ignore_dot,
+                  bool ignore_dot,
+                  bool without_enclosing_folder,
                   size_t absolutePathOffset = 0)
 {
     
@@ -387,11 +388,17 @@ void get_subpaths(wstring& path,
 
 					wcs_to_utf8(sub_path + L"/", folder_name);	
 
+                    if(!without_enclosing_folder){
+                        absolute_paths->push_back(path);
+                        relative_paths->push_back(folder_name);
+                    }
+
                     get_subpaths(path + L"\\*", 
                                  absolute_paths, 		
                                  relative_paths,       
                                  folder_name,
                                  ignore_dot, 
+                                 without_enclosing_folder,
                                  absolutePathOffset);
                     
                 }else{
@@ -408,13 +415,19 @@ void get_subpaths(wstring& path,
                     if(!ignore_dot || ((relative_path.at(0) != '.') && relative_path.find("/.") == string::npos)){
                      
                         absolute_paths->push_back(absolute_path);
-                        relative_paths->push_back(relative_path);
+                        
+                        if(!without_enclosing_folder){
+                            relative_paths->push_back(relative_path);
+                        }else{
+                            relative_paths->push_back(relative_path.substr(folder_name.length()));
+                        }
                         
                         get_subpaths(path.substr(0, path.size() - 1)  + sub_path + L"\\*", 
                                      absolute_paths, 
                                      relative_paths, 
 									 folder_name,
                                      ignore_dot,
+                                     without_enclosing_folder,
                                      absolutePathOffset);
                         
                     }
@@ -444,8 +457,14 @@ void get_subpaths(wstring& path,
 					relative_path = folder_name + relative_path;
 
                     if(!ignore_dot || ((relative_path.at(0) != '.') && relative_path.find("/.") == string::npos)){
+                        
                         absolute_paths->push_back(absolute_path);
-                        relative_paths->push_back(relative_path);
+                        
+                        if(!without_enclosing_folder){
+                            relative_paths->push_back(relative_path);
+                        }else{
+                            relative_paths->push_back(relative_path.substr(folder_name.length()));
+                        }
                     }
   
                 }
@@ -453,13 +472,13 @@ void get_subpaths(wstring& path,
             }		
             
         } while (FindNextFile(h, &find));
-        
+        /*
 		if(!absolute_paths->size() && absolutePathOffset){
 			wstring base_path = path.substr(0, path.size() - 1);
 			relative_paths->push_back(folder_name);	
                 absolute_paths->push_back(base_path);
 		}
-
+        */
         FindClose(h);
         
     }    
@@ -471,7 +490,8 @@ void get_subpaths(C_TEXT& Param,
                   relative_paths_t *relative_paths, 
                   absolute_paths_t *absolute_paths, 
                   bool ignore_dot,
-                  bool with_atttributes){
+                  bool with_atttributes,
+                  bool without_enclosing_folder){
     
     relative_paths->clear();
     absolute_paths->clear();
@@ -516,8 +536,10 @@ void get_subpaths(C_TEXT& Param,
                     basePath = [basePath stringByAppendingString:@"/"];
                 }
                 
-                relative_paths->push_back([folderName UTF8String]);	
-                absolute_paths->push_back([basePath UTF8String]);
+                if(!without_enclosing_folder){
+                    relative_paths->push_back([folderName UTF8String]);	
+                    absolute_paths->push_back([basePath UTF8String]);
+                }
                                 
                 NSDirectoryEnumerator *dirEnum = [fm enumeratorAtURL:baseUrl 
                 includingPropertiesForKeys:[NSArray arrayWithObjects:NSURLIsDirectoryKey, NSURLIsHiddenKey, nil]
@@ -543,15 +565,17 @@ void get_subpaths(C_TEXT& Param,
                     relative_path_t relative_path = [[fullPath substringFromIndex:[folderPath length]]UTF8String];
                     
                     if(!ignore_dot || (((relative_path.at(0) != '.') && relative_path.find("/.") == std::string::npos) && ![isHidden boolValue])){
-                        relative_paths->push_back(relative_path);	
+                    
                         absolute_paths->push_back(absolute_path);
+                        
+                        if(!without_enclosing_folder){
+                            relative_paths->push_back(relative_path);	
+                        }else{
+                            relative_paths->push_back([[fullPath substringFromIndex:[basePath length]]UTF8String]);	
+                        }
                     }
-                }
-                
-
+                } 
             }
-
-
         }//attributes
         
     }else{
@@ -569,10 +593,12 @@ void get_subpaths(C_TEXT& Param,
                 }
 
                 NSArray *paths = (NSMutableArray *)[fm subpathsOfDirectoryAtPath:path error:NULL];
-
-                relative_paths->push_back([folderName UTF8String]);	
-                absolute_paths->push_back([basePath UTF8String]);
-
+                
+                if(!without_enclosing_folder){
+                    relative_paths->push_back([folderName UTF8String]);	
+                    absolute_paths->push_back([basePath UTF8String]);
+                }
+                
                 //a folder with contents
                 for(NSUInteger i = 0; i < [paths count]; i++){
                     
@@ -590,12 +616,17 @@ void get_subpaths(C_TEXT& Param,
                         relative_path_t relative_path = [[folderName stringByAppendingString:itemPath]UTF8String];
                         
                         if(!ignore_dot || ((relative_path.at(0) != '.') && relative_path.find("/.") == std::string::npos)){
-                            relative_paths->push_back(relative_path);	
+                        
+                            	
                             absolute_paths->push_back(absolute_path);
+                            
+                            if(!without_enclosing_folder){
+                                relative_paths->push_back(relative_path);	
+                            }else{
+                                relative_paths->push_back([itemPath UTF8String]);	
+                            }
                         }
-
-                    }				
-                    
+                    }				    
                 }
                 
             }else{	
@@ -614,8 +645,15 @@ void get_subpaths(C_TEXT& Param,
 #else
     
     std::wstring path = std::wstring((wchar_t *)Param.getUTF16StringPtr());
+    
+	if(path.length()){
+		if(path.substr(path.length() - 1) == L"\\"){
+			path = path.substr(0, path.length() - 1);
+		}		
+	}
+    
 	relative_path_t folder_name;
-    get_subpaths(path, absolute_paths, relative_paths, folder_name, ignore_dot);
+    get_subpaths(path, absolute_paths, relative_paths, folder_name, ignore_dot, without_enclosing_folder);
     
 #endif	
 }
@@ -673,12 +711,14 @@ void Zip(sLONG_PTR *pResult, PackagePtr pParams)
 #else
     bool with_atttributes = false;    
 #endif
+
+    bool without_enclosing_folder = !!(flags & 4L);
  
     //callback
     method_id_t methodId = PA_GetMethodID((PA_Unichar *)Param6.getUTF16StringPtr());
     bool abortedByCallbackMethod = false;
     
-	get_subpaths(Param1, &relative_paths, &absolute_paths, ignore_dot, with_atttributes);
+	get_subpaths(Param1, &relative_paths, &absolute_paths, ignore_dot, with_atttributes, without_enclosing_folder);
 
     if(relative_paths.size()){
         

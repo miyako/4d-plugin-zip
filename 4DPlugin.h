@@ -41,12 +41,14 @@ bool create_folder(absolute_path_t& absolute_path);
 void create_parent_folder(absolute_path_t& absolute_path);
 
 void copy_path(C_TEXT& t, absolute_path_t& p);
-
+                  
 void get_subpaths(C_TEXT& Param, 
                   relative_paths_t *relative_paths, 
                   absolute_paths_t *absolute_paths, 
-                  int ignore_dot);
-
+                  bool ignore_dot,
+                  bool with_atttributes,
+                  bool without_enclosing_folder);                  
+                  
 void get_relative_path(void *p, absolute_path_t& sub_path, relative_path_t &relative_path);
 
 #ifdef WIN32
