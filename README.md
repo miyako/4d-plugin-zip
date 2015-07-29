@@ -18,6 +18,10 @@ To migrate existing methods, do the following:
 
 ~~Do not use this plugin to archive apps on Mac. This zip program is not fully capable of handing symbolic links.~~
 
+**Keep UNIX file attributes**
+
+You can archive apps, or any folder that contains symbolic links and files with RWX permissions, by passing ```ZIP_With_attributes (2)``` in options.
+
 Rather try [ditto](https://developer.apple.com/library/mac/documentation/Darwin/Reference/ManPages/man1/ditto.1.html) or [zip](https://developer.apple.com/library/mac/documentation/Darwin/Reference/ManPages/man1/zip.1.html) with the ```-y``` option.
 
 ```sh
