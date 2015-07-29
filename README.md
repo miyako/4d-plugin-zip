@@ -60,7 +60,11 @@ Progress SET BUTTON ENABLED (PROGRESS;True)
 $success:=Unzip ($src;$dst;$password;$with_atttributes;"UNZIP_CALLBACK")
 Progress QUIT (PROGRESS)
 ```
+**Exclude enclosing folder**
 
+Standard compression programs keep the top level folder in the relative path.
+
+You can compress just the contents of a folder by passing ```ZIP_Without_enclosing_folder (4)``` in options.  
 
 Compatibility
 ---
