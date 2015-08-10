@@ -6,22 +6,19 @@
          contextName = "Unzip(long*, unsigned char**):4DPlugin.cpp">
          <PersistentStrings>
             <PersistentString
-               value = "fileInfo">
-            </PersistentString>
-            <PersistentString
-               value = "isSymbolicLink">
+               value = "fileInfo.external_fa">
             </PersistentString>
             <PersistentString
                value = "relative_path">
             </PersistentString>
             <PersistentString
-               value = " 0b001000000000000000">
-            </PersistentString>
-            <PersistentString
-               value = "0xA000 &gt;&gt;11L">
-            </PersistentString>
-            <PersistentString
                value = "with_atttributes">
+            </PersistentString>
+            <PersistentString
+               value = "permission">
+            </PersistentString>
+            <PersistentString
+               value = "(fileInfo.external_fa &gt;&gt; 16L)">
             </PersistentString>
          </PersistentStrings>
       </ContextState>

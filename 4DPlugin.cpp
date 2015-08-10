@@ -248,13 +248,17 @@ void Unzip(sLONG_PTR *pResult, PackagePtr pParams)
                     
                         short permission = (fileInfo.external_fa >> 16L) & 0x01FF;
                         
-                        NSDictionary *itemAttributes = [NSDictionary 
-                        dictionaryWithObject:[NSNumber numberWithShort:permission] 
-                        forKey:NSFilePosixPermissions];
-                    
-                        NSString *fullPath = [[NSString alloc]initWithUTF8String:absolute_path.c_str()];
-                        [fm setAttributes:itemAttributes ofItemAtPath:fullPath error:nil];
-                        [fullPath release];
+                        if(permission){
+                        
+                            NSDictionary *itemAttributes = [NSDictionary
+                                                            dictionaryWithObject:[NSNumber numberWithShort:permission]
+                                                            forKey:NSFilePosixPermissions];
+                            
+                            NSString *fullPath = [[NSString alloc]initWithUTF8String:absolute_path.c_str()];
+                            [fm setAttributes:itemAttributes ofItemAtPath:fullPath error:nil];
+                            [fullPath release];
+                            
+                        }
 
                     }                    
 #endif 
