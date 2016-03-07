@@ -442,7 +442,7 @@ void get_subpaths(wstring& path,
                 
                 if(!absolutePathOffset){
                     // (over-ride ignore_dot, this is top level)
-                    absolute_path = path + sub_path;  
+                    absolute_path = path;// + sub_path;  
                     
                     escape_path(sub_path);
                     wcs_to_utf8(sub_path, relative_path);
