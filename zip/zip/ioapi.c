@@ -1,21 +1,17 @@
 /* ioapi.h -- IO base function header for compress/uncompress .zip
-   part of the MiniZip project
+   part of the MiniZip project - ( http://www.winimage.com/zLibDll/minizip.html )
 
-   Copyright (C) 1998-2010 Gilles Vollant
-     http://www.winimage.com/zLibDll/minizip.html
-   Modifications for Zip64 support
-     Copyright (C) 2009-2010 Mathias Svensson
-     http://result42.com
+         Copyright (C) 1998-2010 Gilles Vollant (minizip) ( http://www.winimage.com/zLibDll/minizip.html )
 
-   This program is distributed under the terms of the same license as zlib.
-   See the accompanying LICENSE file for the full text of the license.
+         Modifications for Zip64 support
+         Copyright (C) 2009-2010 Mathias Svensson ( http://result42.com )
+
+         For more info read MiniZip_info.txt
+
 */
 
-#include <stdlib.h>
-#include <string.h>
-
 #if defined(_WIN32) && (!(defined(_CRT_SECURE_NO_WARNINGS)))
-#define _CRT_SECURE_NO_WARNINGS
+        #define _CRT_SECURE_NO_WARNINGS
 #endif
 
 //miyako: accept unicode file paths on windows
@@ -32,34 +28,19 @@
 #define FOPEN_WB "wb" 
 #endif
 
+#if defined(__APPLE__) || defined(IOAPI_NO_64)
+// In darwin and perhaps other BSD variants off_t is a 64 bit value, hence no need for specific 64 bit functions
+#define FOPEN_FUNC(filename, mode) fopen(filename, mode)
+#define FTELLO_FUNC(stream) ftello(stream)
+#define FSEEKO_FUNC(stream, offset, origin) fseeko(stream, offset, origin)
+#else
+#define FOPEN_FUNC(filename, mode) fopen64(filename, mode)
+#define FTELLO_FUNC(stream) ftello64(stream)
+#define FSEEKO_FUNC(stream, offset, origin) fseeko64(stream, offset, origin)
+#endif
+
 
 #include "ioapi.h"
-
-#if defined(_WIN32)
-#  define snprintf _snprintf
-#endif
-
-#ifdef __APPLE__
-/* In darwin and perhaps other BSD variants off_t is a 64 bit value, hence no need for specific 64 bit functions */
-#  define FOPEN_FUNC(filename, mode) fopen(filename, mode)
-#  define FTELLO_FUNC(stream) ftello(stream)
-#  define FSEEKO_FUNC(stream, offset, origin) fseeko(stream, offset, origin)
-#else
-#  define FOPEN_FUNC(filename, mode) fopen64(filename, mode)
-#  define FTELLO_FUNC(stream) ftello64(stream)
-#  define FSEEKO_FUNC(stream, offset, origin) fseeko64(stream, offset, origin)
-#endif
-
-/* I've found an old Unix (a SunOS 4.1.3_U1) without all SEEK_* defined.... */
-#ifndef SEEK_CUR
-#  define SEEK_CUR    1
-#endif
-#ifndef SEEK_END
-#  define SEEK_END    2
-#endif
-#ifndef SEEK_SET
-#  define SEEK_SET    0
-#endif
 
 voidpf call_zopen64 (const zlib_filefunc64_32_def* pfilefunc,const void*filename,int mode)
 {
@@ -69,13 +50,6 @@ voidpf call_zopen64 (const zlib_filefunc64_32_def* pfilefunc,const void*filename
     {
         return (*(pfilefunc->zopen32_file))(pfilefunc->zfile_func64.opaque,(const char*)filename,mode);
     }
-}
-
-voidpf call_zopendisk64 OF((const zlib_filefunc64_32_def* pfilefunc, voidpf filestream, int number_disk, int mode))
-{
-    if (pfilefunc->zfile_func64.zopendisk64_file != NULL)
-        return (*(pfilefunc->zfile_func64.zopendisk64_file)) (pfilefunc->zfile_func64.opaque,filestream,number_disk,mode);
-    return (*(pfilefunc->zopendisk32_file))(pfilefunc->zfile_func64.opaque,filestream,number_disk,mode);
 }
 
 long call_zseek64 (const zlib_filefunc64_32_def* pfilefunc,voidpf filestream, ZPOS64_T offset, int origin)
@@ -94,13 +68,16 @@ long call_zseek64 (const zlib_filefunc64_32_def* pfilefunc,voidpf filestream, ZP
 
 ZPOS64_T call_ztell64 (const zlib_filefunc64_32_def* pfilefunc,voidpf filestream)
 {
-    uLong tell_uLong;
     if (pfilefunc->zfile_func64.zseek64_file != NULL)
         return (*(pfilefunc->zfile_func64.ztell64_file)) (pfilefunc->zfile_func64.opaque,filestream);
-    tell_uLong = (*(pfilefunc->ztell32_file))(pfilefunc->zfile_func64.opaque,filestream);
-    if ((tell_uLong) == 0xffffffff)
-        return (ZPOS64_T)-1;
-    return tell_uLong;
+    else
+    {
+        uLong tell_uLong = (*(pfilefunc->ztell32_file))(pfilefunc->zfile_func64.opaque,filestream);
+        if ((tell_uLong) == MAXU32)
+            return (ZPOS64_T)-1;
+        else
+            return tell_uLong;
+    }
 }
 
 void fill_zlib_filefunc64_32_def_from_filefunc32(zlib_filefunc64_32_def* p_filefunc64_32,const zlib_filefunc_def* p_filefunc32)
@@ -119,6 +96,8 @@ void fill_zlib_filefunc64_32_def_from_filefunc32(zlib_filefunc64_32_def* p_filef
     p_filefunc64_32->ztell32_file = p_filefunc32->ztell_file;
 }
 
+
+
 static voidpf  ZCALLBACK fopen_file_func OF((voidpf opaque, const char* filename, int mode));
 static uLong   ZCALLBACK fread_file_func OF((voidpf opaque, voidpf stream, void* buf, uLong size));
 static uLong   ZCALLBACK fwrite_file_func OF((voidpf opaque, voidpf stream, const void* buf,uLong size));
@@ -126,26 +105,6 @@ static ZPOS64_T ZCALLBACK ftell64_file_func OF((voidpf opaque, voidpf stream));
 static long    ZCALLBACK fseek64_file_func OF((voidpf opaque, voidpf stream, ZPOS64_T offset, int origin));
 static int     ZCALLBACK fclose_file_func OF((voidpf opaque, voidpf stream));
 static int     ZCALLBACK ferror_file_func OF((voidpf opaque, voidpf stream));
-
-typedef struct 
-{
-    FILE *file;
-    int filenameLength;
-    void *filename;
-} FILE_IOPOSIX;
-
-//static voidpf file_build_ioposix(FILE *file, const char *filename)
-//{
-//    FILE_IOPOSIX *ioposix = NULL;
-//    if (file == NULL)
-//        return NULL;
-//    ioposix = (FILE_IOPOSIX*)malloc(sizeof(FILE_IOPOSIX));
-//    ioposix->file = file;
-//    ioposix->filenameLength = strlen(filename) + 1;
-//    ioposix->filename = (char*)malloc(ioposix->filenameLength * sizeof(char));
-//    strncpy(ioposix->filename, filename, ioposix->filenameLength);
-//    return (voidpf)ioposix;
-//}
 
 static voidpf ZCALLBACK fopen_file_func (voidpf opaque, const char* filename, int mode)
 {
@@ -183,55 +142,6 @@ static voidpf ZCALLBACK fopen64_file_func (voidpf opaque, const void* filename, 
     return file;
 }
 
-//static voidpf ZCALLBACK fopendisk64_file_func (voidpf opaque, voidpf stream, int number_disk, int mode)
-//{
-//    FILE_IOPOSIX *ioposix = NULL;
-//    char *diskFilename = NULL;
-//    voidpf ret = NULL;
-//    int i = 0;
-//
-//    if (stream == NULL)
-//        return NULL;
-//    ioposix = (FILE_IOPOSIX*)stream;
-//    diskFilename = (char*)malloc(ioposix->filenameLength * sizeof(char));
-//    strncpy(diskFilename, ioposix->filename, ioposix->filenameLength);
-//    for (i = ioposix->filenameLength - 1; i >= 0; i -= 1)
-//    {
-//        if (diskFilename[i] != '.')
-//            continue;
-//        snprintf(&diskFilename[i], ioposix->filenameLength - i, ".z%02d", number_disk + 1);
-//        break;
-//    }
-//    if (i >= 0)
-//        ret = fopen64_file_func(opaque, diskFilename, mode);
-//    free(diskFilename);
-//    return ret;
-//}
-
-//static voidpf ZCALLBACK fopendisk_file_func (voidpf opaque, voidpf stream, int number_disk, int mode)
-//{
-//    FILE_IOPOSIX *ioposix = NULL;
-//    char *diskFilename = NULL;
-//    voidpf ret = NULL;
-//    int i = 0;
-//
-//    if (stream == NULL)
-//        return NULL;
-//    ioposix = (FILE_IOPOSIX*)stream;
-//    diskFilename = (char*)malloc(ioposix->filenameLength * sizeof(char));
-//    strncpy(diskFilename, ioposix->filename, ioposix->filenameLength);
-//    for (i = ioposix->filenameLength - 1; i >= 0; i -= 1)
-//    {
-//        if (diskFilename[i] != '.')
-//            continue;
-//        snprintf(&diskFilename[i], ioposix->filenameLength - i, ".z%02d", number_disk + 1);
-//        break;
-//    }
-//    if (i >= 0)
-//        ret = fopen_file_func(opaque, diskFilename, mode);
-//    free(diskFilename);
-//    return ret;
-//}
 
 static uLong ZCALLBACK fread_file_func (voidpf opaque, voidpf stream, void* buf, uLong size)
 {
@@ -253,6 +163,7 @@ static long ZCALLBACK ftell_file_func (voidpf opaque, voidpf stream)
     ret = ftell((FILE *)stream);
     return ret;
 }
+
 
 static ZPOS64_T ZCALLBACK ftell64_file_func (voidpf opaque, voidpf stream)
 {
@@ -308,6 +219,7 @@ static long ZCALLBACK fseek64_file_func (voidpf  opaque, voidpf stream, ZPOS64_T
 
     return ret;
 }
+
 
 static int ZCALLBACK fclose_file_func (voidpf opaque, voidpf stream)
 {

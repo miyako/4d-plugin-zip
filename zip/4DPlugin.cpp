@@ -881,6 +881,9 @@ void Zip(sLONG_PTR *pResult, PackagePtr pParams)
 									if(password.length())
 									{
 										CRC = getFileCrc(absolute_path);
+#define zipOpenNewFileInZip3_64_noAES zipOpenNewFileInZip3_64
+#define zipOpenNewFileInZip64_noAES zipOpenNewFileInZip64
+
 										if(zipOpenNewFileInZip3_64_noAES(hZip,
 																							 relative_path.c_str(),
 																							 &zi,
@@ -928,7 +931,8 @@ void Zip(sLONG_PTR *pResult, PackagePtr pParams)
                     }  
                 }
 #endif                
-    
+#define  zipWriteInFileInZip_noAES zipWriteInFileInZip
+#define zipCloseFileInZip_noAES zipCloseFileInZip
                 if(!isSymbolicLink){
                 
                     std::ifstream ifs(absolute_path.c_str(), std::ios::in|std::ios::binary);
