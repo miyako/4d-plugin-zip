@@ -1,6 +1,12 @@
 # 4d-plugin-zip
 4D plugin to zip and unzip.
 
+New!
+---
+Pass ``ZIP_With_encryption (8)`` to apply AES encryption. 
+
+Note that basic archive utilities may not support password protection, or AES encryption. Use 7-Zip.
+
 Important
 ---
 This plugin project is a forked subset of what was published as [OAuth](https://github.com/miyako/4d-plugin-oauth).
