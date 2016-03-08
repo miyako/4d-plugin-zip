@@ -52,15 +52,6 @@
     <ClCompile Include="..\4D Plugin API\Classes\C_TEXT.cpp">
       <Filter>Source\4D Plugin API\Classes\C</Filter>
     </ClCompile>
-    <ClCompile Include="..\include\zip.c">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\include\ioapi.c">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\include\unzip.c">
-      <Filter>Source</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\4DPlugin.h">
@@ -125,21 +116,6 @@
     </ClInclude>
     <ClInclude Include="..\4D Plugin API\Classes\C_REAL.h">
       <Filter>Source\4D Plugin API\Classes\C</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\unzip.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\zconf.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\zip.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\zlib.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\ioapi.h">
-      <Filter>Source</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

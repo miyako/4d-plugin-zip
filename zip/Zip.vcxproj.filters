@@ -72,9 +72,6 @@
     <ClCompile Include="4D Plugin API\Classes\ARRAY_TIME.cpp">
       <Filter>Source\4D Plugin API\Classes\ARRAY</Filter>
     </ClCompile>
-    <ClCompile Include="include\ioapi.c" />
-    <ClCompile Include="include\unzip.c" />
-    <ClCompile Include="include\zip.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="4DPlugin.h">
@@ -143,9 +140,6 @@
     <ClInclude Include="4D Plugin API\Classes\ARRAY_TIME.h">
       <Filter>Source\4D Plugin API\Classes\ARRAY</Filter>
     </ClInclude>
-    <ClInclude Include="include\zip.h" />
-    <ClInclude Include="include\ioapi.h" />
-    <ClInclude Include="include\unzip.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="4D Plugin API\4DPluginAPI.def">
