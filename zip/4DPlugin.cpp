@@ -12,6 +12,11 @@
 #include "4DPluginAPI.h"
 #include "4DPlugin.h"
 
+//#define zipOpenNewFileInZip3_64_noAES zipOpenNewFileInZip3_64
+//#define zipOpenNewFileInZip64_noAES zipOpenNewFileInZip64
+//#define zipWriteInFileInZip_noAES zipWriteInFileInZip
+//#define zipCloseFileInZip_noAES zipCloseFileInZip
+
 void PluginMain(PA_long32 selector, PA_PluginParameters params)
 {
 	try
@@ -784,6 +789,8 @@ void Zip(sLONG_PTR *pResult, PackagePtr pParams)
             NSFileManager *fm = [[NSFileManager alloc]init];
 #endif                       
 
+						std::vector<uint8_t> buf(BUFFER_SIZE);
+					
             for (unsigned int i = 0; i < relative_paths.size(); ++i) {
                 
                 PA_YieldAbsolute();
@@ -881,8 +888,6 @@ void Zip(sLONG_PTR *pResult, PackagePtr pParams)
 									if(password.length())
 									{
 										CRC = getFileCrc(absolute_path);
-#define zipOpenNewFileInZip3_64_noAES zipOpenNewFileInZip3_64
-#define zipOpenNewFileInZip64_noAES zipOpenNewFileInZip64
 
 										if(zipOpenNewFileInZip3_64_noAES(hZip,
 																							 relative_path.c_str(),
@@ -931,16 +936,13 @@ void Zip(sLONG_PTR *pResult, PackagePtr pParams)
                     }  
                 }
 #endif                
-#define  zipWriteInFileInZip_noAES zipWriteInFileInZip
-#define zipCloseFileInZip_noAES zipCloseFileInZip
+
                 if(!isSymbolicLink){
                 
                     std::ifstream ifs(absolute_path.c_str(), std::ios::in|std::ios::binary);
                 
                     if(ifs.is_open()){
-                        
-                        std::vector<uint8_t> buf(BUFFER_SIZE);
-                        
+											
                         while(ifs.good()){
                             PA_YieldAbsolute();
                             ifs.read((char *)&buf[0], BUFFER_SIZE);

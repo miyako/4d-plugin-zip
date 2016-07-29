@@ -167,6 +167,9 @@ extern int ZEXPORT zipOpenNewFileInZip64 OF((zipFile file,
                        int level,
                        int zip64));
 
+	extern int ZEXPORT zipOpenNewFileInZip64_noAES OF((zipFile file, const char* filename, const zip_fileinfo* zipfi,
+																								 const void* extrafield_local, uInt size_extrafield_local, const void*extrafield_global,
+																								 uInt size_extrafield_global, const char* comment, int method, int level, int zip64));
 /*
   Open a file in the ZIP for writing.
   filename : the filename in zip (if NULL, '-' without quote will be used
@@ -249,6 +252,10 @@ extern int ZEXPORT zipOpenNewFileInZip3_64 OF((zipFile file,
                                             int zip64
                                             ));
 
+	extern int ZEXPORT zipOpenNewFileInZip3_64_noAES OF((zipFile file, const char* filename, const zip_fileinfo* zipfi,
+																									 const void* extrafield_local, uInt size_extrafield_local, const void* extrafield_global,
+																									 uInt size_extrafield_global, const char* comment, int method, int level, int raw, int windowBits,
+																									 int memLevel, int strategy, const char* password, uLong crcForCrypting, int zip64));
 /*
   Same than zipOpenNewFileInZip2, except
     windowBits,memLevel,,strategy : see parameter strategy in deflateInit2
@@ -315,6 +322,8 @@ extern int ZEXPORT zipWriteInFileInZip OF((zipFile file,
 */
 
 extern int ZEXPORT zipCloseFileInZip OF((zipFile file));
+extern int ZEXPORT zipCloseFileInZip_noAES OF((zipFile file));
+	
 /*
   Close the current file in the zipfile
 */
