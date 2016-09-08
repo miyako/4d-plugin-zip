@@ -58,8 +58,7 @@ End if
 
 
 
-Was New
----
+###Was New
 
 Pass ``ZIP_With_encryption (8)`` to apply AES encryption. 
 
