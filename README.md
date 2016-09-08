@@ -6,6 +6,58 @@ New!
 
 The component can now accept a callback method that is a **shared component method**.
 
+**Callback methods can be specified**
+
+```
+$src:=Application file
+$dst:=System folder(Desktop)+"app.zip"
+
+ZIP_CALLBACK_INIT 
+
+$success:=Zip ($src;$dst;"";\
+ZIP_Compression_level_1;ZIP_With_attributes;\
+"ZIP_CALLBACK")
+
+ZIP_CALLBACK_DEINIT 
+```
+
+*ZIP_CALLBACK_INIT
+
+```
+PROGRESS:=Progress New 
+Progress SET BUTTON ENABLED (PROGRESS;True)
+Progress SET ON STOP METHOD (PROGRESS;"ZIP_CALLBACK_STOP")
+```
+
+*ZIP_CALLBACK_DEINIT
+
+```
+If (Not(Progress Stopped (PROGRESS)))
+Progress QUIT (PROGRESS)
+End if 
+```
+
+*ZIP_CALLBACK
+
+```
+C_TEXT($1;$2)
+C_LONGINT($3;$4)
+C_BOOLEAN($0)
+
+If (Progress Stopped (PROGRESS))
+
+$0:=True
+
+Else 
+
+Progress SET PROGRESS (PROGRESS;$3/$4;$2)
+
+End if 
+```
+
+
+
+
 Was New
 ---
 
@@ -58,22 +110,6 @@ $with_atttributes:=2
 $success:=Zip ($src;$dst;$password;$compression_level;$with_atttributes)
 ```
 
-**Callback methods can be specified**
-
-```
-PROGRESS:=Progress New 
-Progress SET BUTTON ENABLED (PROGRESS;True)
-$success:=Zip ($src;$dst;$password;$compression_level;$with_atttributes;"ZIP_CALLBACK")
-Progress QUIT (PROGRESS)
-
-$src:=$dst
-$dst:=System folder(Desktop)+"dst"
-
-PROGRESS:=Progress New 
-Progress SET BUTTON ENABLED (PROGRESS;True)
-$success:=Unzip ($src;$dst;$password;$with_atttributes;"UNZIP_CALLBACK")
-Progress QUIT (PROGRESS)
-```
 **Exclude enclosing folder**
 
 Standard compression programs keep the top level folder in the relative path.
