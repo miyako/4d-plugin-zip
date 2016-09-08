@@ -6,7 +6,7 @@ New!
 
 The component can now accept a callback method that is a **shared component method**.
 
-**Callback methods can be specified**
+###Example
 
 ```
 $src:=Application file
@@ -21,7 +21,7 @@ ZIP_Compression_level_1;ZIP_With_attributes;\
 ZIP_CALLBACK_DEINIT 
 ```
 
-*ZIP_CALLBACK_INIT
+* ``ZIP_CALLBACK_INIT``
 
 ```
 PROGRESS:=Progress New 
@@ -29,7 +29,7 @@ Progress SET BUTTON ENABLED (PROGRESS;True)
 Progress SET ON STOP METHOD (PROGRESS;"ZIP_CALLBACK_STOP")
 ```
 
-*ZIP_CALLBACK_DEINIT
+* ``ZIP_CALLBACK_DEINIT``
 
 ```
 If (Not(Progress Stopped (PROGRESS)))
@@ -37,7 +37,7 @@ Progress QUIT (PROGRESS)
 End if 
 ```
 
-*ZIP_CALLBACK
+* ``ZIP_CALLBACK``
 
 ```
 C_TEXT($1;$2)
