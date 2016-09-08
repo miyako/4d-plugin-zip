@@ -3,6 +3,12 @@
 
 New!
 ---
+
+The component can now accept a callback method that is a **shared component method**.
+
+Was New
+---
+
 Pass ``ZIP_With_encryption (8)`` to apply AES encryption. 
 
 Note that basic archive utilities may not support password protection, or AES encryption. Use 7-Zip.
