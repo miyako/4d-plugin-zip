@@ -58,7 +58,7 @@ void Unzip(sLONG_PTR *pResult, PackagePtr pParams)
 	C_TEXT Param2;
 	C_TEXT Param3;
 	C_LONGINT Param4;
-    C_TEXT Param5;
+	C_TEXT Param5;
 	C_LONGINT returnValue;
 
 	Param1.fromParamAtIndex(pParams, 1);
@@ -109,13 +109,14 @@ void Unzip(sLONG_PTR *pResult, PackagePtr pParams)
         
         double number_entry;
         
-        bool isCallbackActive = false;
-        
-        if(methodId){
+//        bool isCallbackActive = false;
+					bool isCallbackActive = Param5.getUTF16Length();
+			
+//        if(methodId){
             if(unzGetGlobalInfo64(hUnzip, &globalInfo) == UNZ_OK){
                 number_entry = globalInfo.number_entry;
-                isCallbackActive = true;
-            }
+//                isCallbackActive = true;
+//            }
         }
         
         std::vector<uint8_t> szConFilename(PATH_MAX);
@@ -151,39 +152,90 @@ void Unzip(sLONG_PTR *pResult, PackagePtr pParams)
                 
                     double num_of_file = filePos.num_of_file;
 
-                    PA_Variable	params[6];
-                    params[0] = PA_CreateVariable(eVK_Unistring);
-                    params[1] = PA_CreateVariable(eVK_Unistring);
-                    params[2] = PA_CreateVariable(eVK_Real);
-                    params[3] = PA_CreateVariable(eVK_Real);
-                    params[4] = PA_CreateVariable(eVK_Real);
-                    params[5] = PA_CreateVariable(eVK_Real);
-                    C_TEXT tempUstr;
-                    tempUstr.setUTF8String((const uint8_t *)relative_path.c_str(), relative_path.length());
-                    PA_Unistring methodParam1 = PA_CreateUnistring((PA_Unichar *)tempUstr.getUTF16StringPtr());
-                    PA_SetStringVariable(&params[0], &methodParam1);
-                    tempUstr.setUTF8String((const uint8_t *)absolute_path.c_str(), absolute_path.length());
-                    PA_Unistring methodParam2 = PA_CreateUnistring((PA_Unichar *)tempUstr.getUTF16StringPtr());
-                    PA_SetStringVariable(&params[1], &methodParam2);
-                    
-                    PA_SetRealVariable(&params[2], num_of_file);
-                    PA_SetRealVariable(&params[3], number_entry);
-                    PA_SetRealVariable(&params[4], compressed_size);
-                    PA_SetRealVariable(&params[5], uncompressed_size);  
-                          
-                    PA_Variable result = PA_ExecuteMethodByID(methodId, params, 6);
-                    PA_DisposeUnistring(&methodParam1);
-                    PA_DisposeUnistring(&methodParam2);
-                    
-                    if(PA_GetVariableKind(result) == eVK_Boolean){
-                        
-                        abortedByCallbackMethod = PA_GetBooleanVariable(result);
-                              
-                    }
-                
+										if(methodId)
+										{
+											PA_Variable	params[6];
+											params[0] = PA_CreateVariable(eVK_Unistring);
+											params[1] = PA_CreateVariable(eVK_Unistring);
+											params[2] = PA_CreateVariable(eVK_Real);
+											params[3] = PA_CreateVariable(eVK_Real);
+											params[4] = PA_CreateVariable(eVK_Real);
+											params[5] = PA_CreateVariable(eVK_Real);
+											
+											C_TEXT tempUstr;
+											tempUstr.setUTF8String((const uint8_t *)relative_path.c_str(), relative_path.length());
+											PA_Unistring methodParam1 = PA_CreateUnistring((PA_Unichar *)tempUstr.getUTF16StringPtr());
+											PA_SetStringVariable(&params[0], &methodParam1);
+											tempUstr.setUTF8String((const uint8_t *)absolute_path.c_str(), absolute_path.length());
+											PA_Unistring methodParam2 = PA_CreateUnistring((PA_Unichar *)tempUstr.getUTF16StringPtr());
+											PA_SetStringVariable(&params[1], &methodParam2);
+											
+											PA_SetRealVariable(&params[2], num_of_file);
+											PA_SetRealVariable(&params[3], number_entry);
+											PA_SetRealVariable(&params[4], compressed_size);
+											PA_SetRealVariable(&params[5], uncompressed_size);
+											
+											PA_Variable result = PA_ExecuteMethodByID(methodId, params, 6);
+
+											if(PA_GetVariableKind(result) == eVK_Boolean)
+												abortedByCallbackMethod = PA_GetBooleanVariable(result);
+											
+										//	PA_DisposeUnistring(&methodParam1);
+										//	PA_DisposeUnistring(&methodParam2);
+											PA_ClearVariable(&params[0]);
+											PA_ClearVariable(&params[1]);
+											PA_ClearVariable(&params[2]);
+											PA_ClearVariable(&params[3]);
+											PA_ClearVariable(&params[4]);
+											PA_ClearVariable(&params[5]);
+											
+										}
+										else
+										{
+											PA_Variable	params[8];
+											params[2] = PA_CreateVariable(eVK_Unistring);
+											params[3] = PA_CreateVariable(eVK_Unistring);
+											params[4] = PA_CreateVariable(eVK_Real);
+											params[5] = PA_CreateVariable(eVK_Real);
+											params[6] = PA_CreateVariable(eVK_Real);
+											params[7] = PA_CreateVariable(eVK_Real);
+											
+											params[0] = PA_CreateVariable(eVK_Unistring);
+											PA_Unistring _methodName = PA_CreateUnistring((PA_Unichar *)Param5.getUTF16StringPtr());
+											PA_SetStringVariable(&params[0], &_methodName);
+											
+											params[1] = PA_CreateVariable(eVK_Boolean);
+											PA_SetBooleanVariable(&params[1], false);
+											
+											C_TEXT tempUstr;
+											tempUstr.setUTF8String((const uint8_t *)relative_path.c_str(), relative_path.length());
+											PA_Unistring methodParam1 = PA_CreateUnistring((PA_Unichar *)tempUstr.getUTF16StringPtr());
+											PA_SetStringVariable(&params[2], &methodParam1);
+											tempUstr.setUTF8String((const uint8_t *)absolute_path.c_str(), absolute_path.length());
+											PA_Unistring methodParam2 = PA_CreateUnistring((PA_Unichar *)tempUstr.getUTF16StringPtr());
+											PA_SetStringVariable(&params[3], &methodParam2);
+											
+											PA_SetRealVariable(&params[4], num_of_file);
+											PA_SetRealVariable(&params[5], number_entry);
+											PA_SetRealVariable(&params[6], compressed_size);
+											PA_SetRealVariable(&params[7], uncompressed_size);
+											
+											PA_ExecuteCommandByID(1007, params, 8);
+											
+											abortedByCallbackMethod = PA_GetBooleanVariable(params[1]);
+
+											PA_ClearVariable(&params[0]);
+											PA_ClearVariable(&params[1]);
+											PA_ClearVariable(&params[3]);
+											PA_ClearVariable(&params[4]);
+											PA_ClearVariable(&params[5]);
+											PA_ClearVariable(&params[6]);
+											PA_ClearVariable(&params[7]);
+										}
+	
                 }
 
-            } 
+            }
 
             if(relative_path.size() > 1){
                 if( !ignore_dot || ((relative_path.at(0) != '.') && relative_path.find("/.") == std::string::npos)){
@@ -778,13 +830,14 @@ void Zip(sLONG_PTR *pResult, PackagePtr pParams)
                
             double number_entry;
                
-            bool isCallbackActive = false;
-        
-            if(methodId){
+//            bool isCallbackActive = false;
+							bool isCallbackActive = Param6.getUTF16Length();
+					
+//            if(methodId){
                     number_entry = relative_paths.size();
-                    isCallbackActive = true; 
-            }            
-                                          
+//                    isCallbackActive = true; 
+//            }
+							
 #if VERSIONMAC
             NSFileManager *fm = [[NSFileManager alloc]init];
 #endif                       
@@ -835,35 +888,79 @@ void Zip(sLONG_PTR *pResult, PackagePtr pParams)
                 
                 //callback
                 if(isCallbackActive){
-                
-                    PA_Variable	params[4];
-                    params[0] = PA_CreateVariable(eVK_Unistring);
-                    params[1] = PA_CreateVariable(eVK_Unistring);
-                    params[2] = PA_CreateVariable(eVK_Real);
-                    params[3] = PA_CreateVariable(eVK_Real);
-                    C_TEXT tempUstr;
-                    tempUstr.setUTF8String((const uint8_t *)relative_path.c_str(), relative_path.length());
-                    PA_Unistring methodParam1 = PA_CreateUnistring((PA_Unichar *)tempUstr.getUTF16StringPtr());
-                    PA_SetStringVariable(&params[0], &methodParam1);
-                    tempUstr.setUTF8String((const uint8_t *)absolute_path.c_str(), absolute_path.length());
-                    PA_Unistring methodParam2 = PA_CreateUnistring((PA_Unichar *)tempUstr.getUTF16StringPtr());
-                    PA_SetStringVariable(&params[1], &methodParam2);
-                    
-                    PA_SetRealVariable(&params[2], i+1);
-                    PA_SetRealVariable(&params[3], number_entry);
-                    
-                    PA_Variable result = PA_ExecuteMethodByID(methodId, params, 4);
-                    PA_DisposeUnistring(&methodParam1);
-                    PA_DisposeUnistring(&methodParam2);
-                    
-                    if(PA_GetVariableKind(result) == eVK_Boolean){
-                        
-                        abortedByCallbackMethod = PA_GetBooleanVariable(result);
-               
-                    }
-            
+									
+									
+									if(methodId)
+									{
+										PA_Variable	params[4];
+										params[0] = PA_CreateVariable(eVK_Unistring);
+										params[1] = PA_CreateVariable(eVK_Unistring);
+										params[2] = PA_CreateVariable(eVK_Real);
+										params[3] = PA_CreateVariable(eVK_Real);
+										
+										C_TEXT tempUstr;
+										tempUstr.setUTF8String((const uint8_t *)relative_path.c_str(), relative_path.length());
+										PA_Unistring methodParam1 = PA_CreateUnistring((PA_Unichar *)tempUstr.getUTF16StringPtr());
+										PA_SetStringVariable(&params[0], &methodParam1);
+										tempUstr.setUTF8String((const uint8_t *)absolute_path.c_str(), absolute_path.length());
+										PA_Unistring methodParam2 = PA_CreateUnistring((PA_Unichar *)tempUstr.getUTF16StringPtr());
+										PA_SetStringVariable(&params[1], &methodParam2);
+										
+										PA_SetRealVariable(&params[2], i+1);
+										PA_SetRealVariable(&params[3], number_entry);
+										
+										PA_Variable result = PA_ExecuteMethodByID(methodId, params, 4);
+										
+										if(PA_GetVariableKind(result) == eVK_Boolean)
+											abortedByCallbackMethod = PA_GetBooleanVariable(result);
+										
+//										PA_DisposeUnistring(&methodParam1);
+//										PA_DisposeUnistring(&methodParam2);
+										PA_ClearVariable(&params[0]);
+										PA_ClearVariable(&params[1]);
+										PA_ClearVariable(&params[2]);
+										PA_ClearVariable(&params[3]);
+										
+									}else
+									{
+										PA_Variable	params[6];
+										
+										params[2] = PA_CreateVariable(eVK_Unistring);
+										params[3] = PA_CreateVariable(eVK_Unistring);
+										params[4] = PA_CreateVariable(eVK_Real);
+										params[5] = PA_CreateVariable(eVK_Real);
+										
+										params[0] = PA_CreateVariable(eVK_Unistring);
+										PA_Unistring _methodName = PA_CreateUnistring((PA_Unichar *)Param6.getUTF16StringPtr());
+										PA_SetStringVariable(&params[0], &_methodName);
+										
+										params[1] = PA_CreateVariable(eVK_Boolean);
+										PA_SetBooleanVariable(&params[1], false);
+										
+										C_TEXT tempUstr;
+										tempUstr.setUTF8String((const uint8_t *)relative_path.c_str(), relative_path.length());
+										PA_Unistring methodParam1 = PA_CreateUnistring((PA_Unichar *)tempUstr.getUTF16StringPtr());
+										PA_SetStringVariable(&params[2], &methodParam1);
+										tempUstr.setUTF8String((const uint8_t *)absolute_path.c_str(), absolute_path.length());
+										PA_Unistring methodParam2 = PA_CreateUnistring((PA_Unichar *)tempUstr.getUTF16StringPtr());
+										PA_SetStringVariable(&params[3], &methodParam2);
+										
+										PA_SetRealVariable(&params[4], i+1);
+										PA_SetRealVariable(&params[5], number_entry);
+										
+										PA_ExecuteCommandByID(1007, params, 6);
+										
+										abortedByCallbackMethod = PA_GetBooleanVariable(params[1]);
+										
+										PA_ClearVariable(&params[0]);
+										PA_ClearVariable(&params[1]);
+										PA_ClearVariable(&params[3]);
+										PA_ClearVariable(&params[4]);
+										PA_ClearVariable(&params[5]);
+									}
+	
                 }
-                
+							
                 if(abortedByCallbackMethod){
                     i = number_entry;
                 }
