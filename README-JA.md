@@ -1,7 +1,7 @@
-* Zip
+###Zip
 
 ```
-result:=Zip (src;dst;pass;level;options;callback)
+success:=Zip (src;dst;pass;level;options;callback)
 ```
 
 パラメーター|タイプ|説明
@@ -58,4 +58,20 @@ Macの場合，ファイル属性を保持します。特にシンボリック�
 
 AESで暗号化します。
 
+処理が中断された場合，``success``に``0``が返されます。
+
+####コールバックメソッドの引数
+
+```
+abort:=Zip (src;dst;pass;total)
+```
+
+パラメーター|タイプ|説明
+------------|------|----
+dst|TEXT|ファイル・フォルダーの相対パス名
+dst|TEXT|ファイル・フォルダーの相対パス名
+count|REAL|ファイル・フォルダーの番号
+total|REAL|ファイル・フォルダーの合計数
+
+``abort``に``True``が返されると処理を中断します。
 
