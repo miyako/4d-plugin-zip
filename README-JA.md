@@ -8,7 +8,7 @@ success:=Zip (src;dst;pass;level;options;callback)
 ------------|------|----
 src|TEXT|圧縮したいフォルダーまたはファイルのフルパス名
 dst|TEXT|作成する圧縮ファイルのフルパス名
-pass|TEXT|パスワード（付与する場合）
+pass|TEXT|パスワード（設定する場合）
 level|INT32|圧縮率（デフォルトは``Z_DEFAULT_COMPRESSION``）
 options|INT32|フラグの組み合わせ
 callback|テキスト|コールバックとして使用するプロジェクトメソッド名
@@ -63,15 +63,53 @@ AESで暗号化します。
 ####コールバックメソッドの引数
 
 ```
-abort:=Zip (src;dst;pass;total)
+abort:=Callback (pathRelative;pathAbsolute;pass;total)
 ```
 
 パラメーター|タイプ|説明
 ------------|------|----
-dst|TEXT|ファイル・フォルダーの相対パス名
-dst|TEXT|ファイル・フォルダーの相対パス名
+pathRelative|TEXT|ファイル・フォルダーの相対パス名
+pathAbsolute|TEXT|ファイル・フォルダーの絶対パス名
 count|REAL|ファイル・フォルダーの番号
 total|REAL|ファイル・フォルダーの合計数
 
 ``abort``に``True``が返されると処理を中断します。
 
+###Unzip
+
+```
+result:=Unzip (src;dst;pass;options;callback)
+```
+
+パラメーター|タイプ|説明
+------------|------|----
+src|TEXT|圧縮したいフォルダーまたはファイルのフルパス名
+dst|TEXT|作成する圧縮ファイルのフルパス名
+pass|TEXT|パスワード（設定されている場合）
+options|INT32|フラグの組み合わせ
+callback|テキスト|コールバックとして使用するプロジェクトメソッド名
+
+* フラグについて
+
+下記のものが有効です。
+
+``ZIP_Ignore_hidden``
+
+``ZIP_With_attributes``
+
+####コールバックメソッドの引数
+
+```
+abort:=Callback (pathRelative;pathAbsolute;pass;total;sizeCompressed;sizeUncompressed)
+```
+
+パラメーター|タイプ|説明
+------------|------|----
+pathRelative|TEXT|ファイル・フォルダーの相対パス名
+pathAbsolute|TEXT|ファイル・フォルダーの絶対パス名
+count|REAL|ファイル・フォルダーの番号
+total|REAL|ファイル・フォルダーの合計数
+sizeCompressed|REAL|ファイル・フォルダーの圧縮サイズ
+sizeUncompressed|REAL|ファイル・フォルダーのサイズ
+
+``abort``に``True``が返されると処理を中断します。
