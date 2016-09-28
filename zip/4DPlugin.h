@@ -18,6 +18,15 @@ void Zip(sLONG_PTR *pResult, PackagePtr pParams);
 #include "unzip.h"
 
 #if VERSIONMAC
+#include "codepage/cpmap.h"
+#define MAX_LENGTH_FOR_ENCODING_NAME (255)
+#endif 
+
+#if VERSIONWIN
+#include <mlang.h>
+#endif
+
+#if VERSIONMAC
 typedef std::string absolute_path_t;
 #define folder_separator '/'
 #else
@@ -49,7 +58,7 @@ void get_subpaths(C_TEXT& Param,
                   bool with_atttributes,
                   bool without_enclosing_folder);                  
                   
-void get_relative_path(void *p, absolute_path_t& sub_path, relative_path_t &relative_path);
+#define CHARSET_AUTOMATIC (-1)
 
 #ifdef WIN32
 #include <time.h>

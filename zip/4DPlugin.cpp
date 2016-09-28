@@ -50,6 +50,100 @@ void CommandDispatcher (PA_long32 pProcNum, sLONG_PTR *pResult, PackagePtr pPara
 	}
 }
 
+#pragma mark -
+
+#if VERSIONMAC
+void convertPathToCodepage(std::string &path, UInt32 codepage)
+{
+	CFStringEncoding encoding = _CFStringConvertWindowsCodepageToEncoding(codepage);
+	if((encoding != kCFStringEncodingInvalidId) && CFStringIsEncodingAvailable(encoding))
+	{
+		NSString *str = (NSString *)CFStringCreateWithBytes(kCFAllocatorDefault,
+																												(const UInt8 *)path.c_str(),
+																												path.length(),
+																												kCFStringEncodingUTF8,
+																												true);
+		if(str)
+		{
+			uint32_t size = CFStringGetMaximumSizeForEncoding([str length], encoding) + sizeof(PA_Unichar);	//2 bytes for null termination
+			std::vector<uint8_t> buf(size);
+			CFIndex len = 0;
+			CFStringGetBytes((CFStringRef)str, CFRangeMake(0, [str length]), encoding, '?', false, (UInt8 *)&buf[0], size, &len);
+			path = relative_path_t((char *)&buf[0], len);
+			[str release];
+		}
+	}
+}
+#else
+void convertPathToCodepage(std::string &path, DWORD codepage, IMultiLanguage2 *mlang)
+{
+	if(mlang)
+	{
+		C_TEXT tempUstr;
+		UINT len, mlen, ulen;
+		DWORD mode = 0;
+		tempUstr.setUTF8String((const uint8_t *)path.c_str(), path.length());
+		ulen = -1;
+		LPWSTR ustr = (LPWSTR)tempUstr.getUTF16StringPtr();
+		mlang->ConvertStringFromUnicode(&mode, codepage, ustr, &ulen, NULL, &mlen);
+		len = mlen+2;
+		std::vector<uint8_t> buf(len);
+		if(S_OK == mlang->ConvertStringFromUnicode(&mode, codepage, ustr, &ulen, (CHAR *)&buf[0], &mlen))
+		{
+			path = std::string((char *)&buf[0]);
+		}
+	}
+}
+#endif
+
+#if VERSIONMAC
+void convertPathFromCodepage(std::string &path, UInt32 codepage)
+{
+	CFStringEncoding encoding = _CFStringConvertWindowsCodepageToEncoding(codepage);
+	if((encoding != kCFStringEncodingInvalidId) && CFStringIsEncodingAvailable(encoding))
+	{
+		NSString *str = (NSString *)CFStringCreateWithBytes(kCFAllocatorDefault,
+																							(const UInt8 *)path.c_str(),
+																							path.length(),
+																							encoding,
+																							true);
+		if(str)
+		{
+			uint32_t size = CFStringGetMaximumSizeForEncoding([str length], kCFStringEncodingUTF8) + sizeof(PA_Unichar);	//2 bytes for null termination
+			std::vector<uint8_t> buf(size);
+			CFIndex len = 0;
+			CFStringGetBytes((CFStringRef)str, CFRangeMake(0, [str length]), kCFStringEncodingUTF8, '?', false, (UInt8 *)&buf[0], size, &len);
+			path = std::string((char *)&buf[0], len);
+			[str release];
+		}
+	}
+}
+#else
+void convertPathFromCodepage(std::string &path, DWORD codepage, IMultiLanguage2 *mlang)
+{
+	if(mlang)
+	{
+		LPSTR mstr = (LPSTR)path.c_str();
+		UINT mlen = -1;
+		UINT ulen, len;
+		DWORD mode = 0;
+		mlang->ConvertStringToUnicode(&mode, codepage, mstr, &mlen, NULL, &ulen);
+		len = ((ulen * 2) + 2);
+		std::vector<uint8_t> buf(len);
+		if(S_OK == mlang->ConvertStringToUnicode(&mode, codepage, mstr, &mlen, (WCHAR *)&buf[0], &ulen))
+		{
+			C_TEXT tempUstr;
+			tempUstr.setUTF16String((const PA_Unichar *)&buf[0], ulen);
+			CUTF8String tempStr;
+			tempUstr.copyUTF8String(&tempStr);
+			path = std::string((char *)tempStr.c_str());
+		}
+	}
+}
+#endif
+
+#pragma mark -
+
 // -------------------------------------- Zip -------------------------------------
 
 void Unzip(sLONG_PTR *pResult, PackagePtr pParams)
@@ -59,13 +153,15 @@ void Unzip(sLONG_PTR *pResult, PackagePtr pParams)
 	C_TEXT Param3;
 	C_LONGINT Param4;
 	C_TEXT Param5;
+	C_LONGINT Param6;
 	C_LONGINT returnValue;
 
 	Param1.fromParamAtIndex(pParams, 1);
 	Param2.fromParamAtIndex(pParams, 2);
 	Param3.fromParamAtIndex(pParams, 3);
 	Param4.fromParamAtIndex(pParams, 4);
-    Param5.fromParamAtIndex(pParams, 5);
+	Param5.fromParamAtIndex(pParams, 5);
+	Param6.fromParamAtIndex(pParams, 6);
     
     //pass
     CUTF8String password;
@@ -93,10 +189,18 @@ void Unzip(sLONG_PTR *pResult, PackagePtr pParams)
     bool with_atttributes = false;    
 #endif
 
+#if VERSIONWIN
+	IMultiLanguage2 *mlang = NULL;
+	CoCreateInstance(CLSID_CMultiLanguage, NULL, CLSCTX_INPROC_SERVER, IID_IMultiLanguage2, (void **)&mlang);
+	DWORD codepage = 0;
+#endif
+	
     //callback
     method_id_t methodId = PA_GetMethodID((PA_Unichar *)Param5.getUTF16StringPtr());
     bool abortedByCallbackMethod = false;
-    
+	
+	int charset = Param6.getIntValue();
+	
     unzFile hUnzip = unzOpen64(input);
     
     if (hUnzip){
@@ -127,18 +231,159 @@ void Unzip(sLONG_PTR *pResult, PackagePtr pParams)
 #if VERSIONMAC
             NSFileManager *fm = [[NSFileManager alloc]init];
 #endif  
-        
+			
+#if VERSIONMAC
+			std::vector<TextEncoding> _encodings;
+			TextEncoding *encodings = NULL;
+			TECSnifferObjectRef sniffer = NULL;
+			int len = MAX_LENGTH_FOR_ENCODING_NAME;
+			ItemCount charset_count, charset_num;
+			ItemCount numTextEncodings;
+			ItemCount maxErrs;
+			ItemCount maxFeatures;
+			ItemCount *numErrsArray;
+			if(charset == CHARSET_AUTOMATIC)
+			{
+				if(!TECCountAvailableTextEncodings(&charset_count))
+				{
+					_encodings.resize(charset_count);
+					encodings = &_encodings[0];
+					TECGetAvailableTextEncodings(encodings, charset_count, &charset_num);
+					TECCreateSniffer(&sniffer, encodings, charset_num);
+				}
+			}
+#else
+			ULONG numTextEncodings = 0;
+			if(mlang)
+			{
+				ULONG charset_count, charset_celt = 32;//	number of codes page information to retrive at a time
+				MIMECPINFO charset_infos[32];
+				IEnumCodePage* codepages = NULL;
+				mlang->EnumCodePages(MIMECONTF_VALID, 0, &codepages);
+				if(codepages)
+				{
+					while(codepages->Next(charset_celt, charset_infos, &charset_count) == S_OK)
+					{
+						numTextEncodings += charset_count;
+					}
+					codepages->Release();
+				}
+			}
+#endif
+			
         do {
-            
+					
             PA_YieldAbsolute();
-            
+					
             if (unzGetCurrentFileInfo64(hUnzip, &fileInfo, (char *)&szConFilename[0], PATH_MAX, NULL, 0, NULL, 0) != UNZ_OK){
                 returnValue.setIntValue(0);
                 break;
             }
-
-            get_relative_path(&szConFilename[0], sub_path, relative_path);
-
+					
+					
+#if VERSIONWIN
+						relative_path = relative_path_t((const char *)&szConFilename[0]);
+						relative_path_t sub_path_utf8 = relative_path;
+#else
+						relative_path = absolute_path_t((const char *)&szConFilename[0]);
+						sub_path = relative_path;
+#endif
+					
+						if(charset == CHARSET_AUTOMATIC)
+						{
+#if VERSIONMAC
+							if(sniffer)
+							{
+								numTextEncodings = charset_num;
+								maxErrs = relative_path.size();
+								maxFeatures = relative_path.size();
+								std::vector<ItemCount> _numErrsArray(charset_count);
+								numErrsArray = &_numErrsArray[0];
+								std::vector<ItemCount> _numFeaturesArray(charset_count);
+								ItemCount *numFeaturesArray = &_numFeaturesArray[0];
+								if(!TECSniffTextEncoding(sniffer,
+									(ConstTextPtr)relative_path.c_str(),
+									(ByteCount)relative_path.size(),
+									encodings,
+									numTextEncodings,
+									numErrsArray,
+									maxErrs,
+									numFeaturesArray,
+									maxFeatures))
+								{
+									RegionCode actualRegion;
+									TextEncoding actualEncoding;
+									ByteCount length;
+									TextEncoding unicode = CreateTextEncoding(kTextEncodingUnicodeDefault,
+																														kTextEncodingDefaultVariant,
+																														kUnicode16BitFormat);
+									
+									std::vector<char> buf(len);
+									if(!GetTextEncodingName(
+																					encodings[0],
+																					kTextEncodingFullName,
+																					0,
+																					unicode,
+																					len,
+																					&length,
+																					&actualRegion,
+																					&actualEncoding,
+																					(TextPtr)&buf[0]))
+									{
+										CFStringRef name = CFStringCreateWithCharacters(kCFAllocatorDefault, (const UniChar*)&buf[0], (length/2));
+										if(name)
+										{
+											UInt32 codepage = TextEncodingNameToWindowsCodepage(name);
+											if(codepage > 0)
+											{
+												convertPathFromCodepage(relative_path, codepage);
+												convertPathFromCodepage(sub_path, codepage);
+											}
+											CFRelease(name);
+										}
+									}
+								}
+							}
+#else
+							if(mlang)
+							{
+								char *data = (char *)relative_path.c_str();
+								size_t size = relative_path.size();
+								int scores = numTextEncodings;
+								std::vector<DetectEncodingInfo> encodings(scores);
+								mlang->DetectInputCodepage(MLDETECTCP_NONE, 0, data, (INT *)&size, &encodings[0], &scores);
+								INT confidence = 0;
+								
+								for(int i = 0; i < scores ; ++i)
+								{
+									if(encodings[i].nLangID != 0)
+									{
+										if(confidence < encodings[i].nConfidence){
+											codepage = encodings[i].nCodePage;
+										}
+									}
+								}
+								if(codepage > 0)
+								{
+									convertPathFromCodepage(relative_path, codepage, mlang);
+									convertPathFromCodepage(sub_path_utf8, codepage, mlang);
+								}
+							}
+#endif
+						}else if(charset > 0)
+						{
+#if VERSIONMAC
+							convertPathFromCodepage(relative_path, charset);
+							convertPathFromCodepage(sub_path, charset);
+#else
+							convertPathFromCodepage(relative_path, charset, mlang);
+							convertPathFromCodepage(sub_path_utf8, charset, mlang);
+#endif
+						}
+#if VERSIONWIN
+					unescape_path(sub_path_utf8);
+					utf8_to_wcs(sub_path_utf8, sub_path);
+#endif
             absolute_path = output;
             absolute_path+= folder_separator + sub_path;
             
@@ -330,10 +575,23 @@ void Unzip(sLONG_PTR *pResult, PackagePtr pParams)
 #if VERSIONMAC
             [fm release];
 #endif         
-                      
+
+#if VERSIONMAC
+			if(sniffer)
+			{
+				TECDisposeSniffer(sniffer);
+			}
+#endif
         unzClose(hUnzip);	
     }     
-    
+	
+#if VERSIONWIN
+		if(mlang)
+		{
+			mlang->Release();
+		}
+#endif
+	
     if(abortedByCallbackMethod){
         returnValue.setIntValue(0);
     }   
@@ -746,6 +1004,7 @@ void Zip(sLONG_PTR *pResult, PackagePtr pParams)
     C_LONGINT Param4;
     C_LONGINT Param5;
     C_TEXT Param6;
+		C_LONGINT Param7;
     C_LONGINT returnValue;
     
     Param1.fromParamAtIndex(pParams, 1);//src
@@ -754,7 +1013,8 @@ void Zip(sLONG_PTR *pResult, PackagePtr pParams)
     Param4.fromParamAtIndex(pParams, 4);//level
     Param5.fromParamAtIndex(pParams, 5);//options
     Param6.fromParamAtIndex(pParams, 6);//callback
-    
+    Param7.fromParamAtIndex(pParams, 7);//codepage
+	
     //src
     absolute_paths_t absolute_paths;
     relative_paths_t relative_paths;
@@ -794,11 +1054,18 @@ void Zip(sLONG_PTR *pResult, PackagePtr pParams)
     bool without_enclosing_folder = !!(flags & 4L);
     bool with_encyption = !!(flags & 8L);
 	
+#if VERSIONWIN
+	IMultiLanguage2 *mlang = NULL;
+	CoCreateInstance(CLSID_CMultiLanguage, NULL, CLSCTX_INPROC_SERVER, IID_IMultiLanguage2, (void **)&mlang);
+#endif
+	
     //callback
     method_id_t methodId = PA_GetMethodID((PA_Unichar *)Param6.getUTF16StringPtr());
     bool abortedByCallbackMethod = false;
-    
-	get_subpaths(Param1, &relative_paths, &absolute_paths, ignore_dot, with_atttributes, without_enclosing_folder);
+	
+		int charset = Param7.getIntValue();
+	
+		get_subpaths(Param1, &relative_paths, &absolute_paths, ignore_dot, with_atttributes, without_enclosing_folder);
 
     if(relative_paths.size()){
         
@@ -849,8 +1116,18 @@ void Zip(sLONG_PTR *pResult, PackagePtr pParams)
                 PA_YieldAbsolute();
                 
                 relative_path_t relative_path = relative_paths.at(i);
-                absolute_path_t absolute_path = absolute_paths.at(i); 
-                
+                absolute_path_t absolute_path = absolute_paths.at(i);
+								relative_path_t relative_path_utf8 = relative_path;
+							
+								if(charset > 0)
+								{
+#if VERSIONMAC
+									convertPathToCodepage(relative_path, charset);
+#else
+									convertPathToCodepage(relative_path, charset, mlang);
+#endif
+								}
+							
                 zi.external_fa = 0;
 #if VERSIONMAC  
 
@@ -899,7 +1176,7 @@ void Zip(sLONG_PTR *pResult, PackagePtr pParams)
 										params[3] = PA_CreateVariable(eVK_Real);
 										
 										C_TEXT tempUstr;
-										tempUstr.setUTF8String((const uint8_t *)relative_path.c_str(), relative_path.length());
+										tempUstr.setUTF8String((const uint8_t *)relative_path_utf8.c_str(), relative_path_utf8.length());
 										PA_Unistring methodParam1 = PA_CreateUnistring((PA_Unichar *)tempUstr.getUTF16StringPtr());
 										PA_SetStringVariable(&params[0], &methodParam1);
 										tempUstr.setUTF8String((const uint8_t *)absolute_path.c_str(), absolute_path.length());
@@ -914,8 +1191,6 @@ void Zip(sLONG_PTR *pResult, PackagePtr pParams)
 										if(PA_GetVariableKind(result) == eVK_Boolean)
 											abortedByCallbackMethod = PA_GetBooleanVariable(result);
 										
-//										PA_DisposeUnistring(&methodParam1);
-//										PA_DisposeUnistring(&methodParam2);
 										PA_ClearVariable(&params[0]);
 										PA_ClearVariable(&params[1]);
 										PA_ClearVariable(&params[2]);
@@ -938,7 +1213,7 @@ void Zip(sLONG_PTR *pResult, PackagePtr pParams)
 										PA_SetBooleanVariable(&params[1], false);
 										
 										C_TEXT tempUstr;
-										tempUstr.setUTF8String((const uint8_t *)relative_path.c_str(), relative_path.length());
+										tempUstr.setUTF8String((const uint8_t *)relative_path_utf8.c_str(), relative_path_utf8.length());
 										PA_Unistring methodParam1 = PA_CreateUnistring((PA_Unichar *)tempUstr.getUTF16StringPtr());
 										PA_SetStringVariable(&params[2], &methodParam1);
 										tempUstr.setUTF8String((const uint8_t *)absolute_path.c_str(), absolute_path.length());
@@ -1070,7 +1345,14 @@ void Zip(sLONG_PTR *pResult, PackagePtr pParams)
         }        
         
     }
-        
+	
+#if VERSIONWIN
+		if(mlang)
+		{
+			mlang->Release();
+		}
+#endif
+	
     if(abortedByCallbackMethod){
         returnValue.setIntValue(0);
     }      
@@ -1078,17 +1360,7 @@ void Zip(sLONG_PTR *pResult, PackagePtr pParams)
     returnValue.setReturn(pResult);
 }
 
-void get_relative_path(void *p, absolute_path_t& sub_path, relative_path_t &relative_path){
-#if VERSIONWIN
-    relative_path = relative_path_t((const char *)p);
-    std::string path = relative_path; 
-    unescape_path(path);
-    utf8_to_wcs(path, sub_path);
-#else
-    relative_path = absolute_path_t((const char *)p);
-    sub_path = relative_path;
-#endif    
-}
+#pragma mark -
 
 bool create_folder(absolute_path_t& absolute_path){
     
