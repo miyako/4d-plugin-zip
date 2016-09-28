@@ -1,7 +1,7 @@
 ###Zip
 
 ```
-success:=Zip (src;dst;pass;level;options;callback)
+success:=Zip (src;dst;pass;level;options;callback;codepage)
 ```
 
 パラメーター|タイプ|説明
@@ -79,7 +79,7 @@ total|REAL|ファイル・フォルダーの合計数
 ###Unzip
 
 ```
-result:=Unzip (src;dst;pass;options;callback)
+result:=Unzip (src;dst;pass;options;callback;codepage)
 ```
 
 パラメーター|タイプ|説明
