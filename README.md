@@ -4,6 +4,11 @@
 New!
 ---
 
+An optional ``codepage`` paramter is added. Use it to specify an encoding other than the default UTF-8. The Unzip command can auto-detect ANSI file names in proprietary Windows archives.
+
+New!
+---
+
 The component can now accept a callback method that is a **shared component method**.
 
 ###Example
