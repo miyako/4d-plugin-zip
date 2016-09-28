@@ -89,7 +89,7 @@ dst|TEXT|作成する圧縮ファイルのフルパス名
 pass|TEXT|パスワード（設定されている場合）
 options|INT32|フラグの組み合わせ
 callback|TEXT|コールバックとして使用するプロジェクトメソッド名
-codepage|INT32|コードページ（デフォルト:0=UTF-8, ``Zip_Charset_automatic``:-1=自動判定）
+codepage|INT32|コードページ（デフォルト:``0``=UTF-8, ``Zip_Charset_automatic``:``-1``=自動判定）
 
 * フラグについて
 
