@@ -471,6 +471,7 @@ void Unzip(sLONG_PTR *pResult, PackagePtr pParams)
 
 											PA_ClearVariable(&params[0]);
 											PA_ClearVariable(&params[1]);
+											PA_ClearVariable(&params[2]);
 											PA_ClearVariable(&params[3]);
 											PA_ClearVariable(&params[4]);
 											PA_ClearVariable(&params[5]);
@@ -1156,8 +1157,8 @@ void Zip(sLONG_PTR *pResult, PackagePtr pParams)
                                 zi.external_fa = 0xC0000000;
                             }
 
-                            zi.external_fa |= ([[attributes valueForKey:NSFilePosixPermissions]shortValue] << 16L);
-                                        
+													zi.external_fa |= ([[attributes valueForKey:NSFilePosixPermissions]shortValue] << 16L);
+
                         }//attributes 
                         
                     }//with_atttributes

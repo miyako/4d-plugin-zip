@@ -62,8 +62,10 @@
 #endif
 /* compile with -Dlocal if your debugger can't find static symbols */
 
-#ifndef VERSIONMADEBY
-# define VERSIONMADEBY   (0x0) /* platform depedent */
+#ifdef _WIN32
+# define VERSIONMADEBY   (0x0) //MS-DOS and OS/2 (FAT / VFAT / FAT32 file systems)
+#else
+# define VERSIONMADEBY   (0x3) //UNIX 
 #endif
 
 #ifndef Z_BUFSIZE
