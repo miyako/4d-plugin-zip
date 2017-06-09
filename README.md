@@ -1,17 +1,17 @@
 # 4d-plugin-zip
 4D plugin to zip and unzip.
 
-New!
----
+## Notes
 
 An optional ``codepage`` paramter is added. Use it to specify an encoding other than the default UTF-8. The Unzip command can auto-detect ANSI file names in proprietary Windows archives.
 
-New!
----
-
 The component can now accept a callback method that is a **shared component method**.
 
-###Example
+Pass ``ZIP_With_encryption (8)`` to apply AES encryption. 
+
+Note that basic archive utilities may not support password protection, or AES encryption. Use 7-Zip.
+
+## Examples
 
 ```
 $src:=Application file
@@ -60,17 +60,8 @@ Progress SET PROGRESS (PROGRESS;$3/$4;$2)
 End if 
 ```
 
+## Important
 
-
-
-###Was New
-
-Pass ``ZIP_With_encryption (8)`` to apply AES encryption. 
-
-Note that basic archive utilities may not support password protection, or AES encryption. Use 7-Zip.
-
-Important
----
 This plugin project is a forked subset of what was published as [OAuth](https://github.com/miyako/4d-plugin-oauth).
 
 Existing commands have the same name and functionality, but their tokens (internal IDs) have changed.
