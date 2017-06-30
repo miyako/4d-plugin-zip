@@ -17,6 +17,8 @@
 //#define zipWriteInFileInZip_noAES zipWriteInFileInZip
 //#define zipCloseFileInZip_noAES zipCloseFileInZip
 
+#define YIELD_FACTOR 0x2000
+
 void PluginMain(PA_long32 selector, PA_PluginParameters params)
 {
 	try
@@ -270,10 +272,15 @@ void Unzip(sLONG_PTR *pResult, PackagePtr pParams)
 				}
 			}
 #endif
-			
+			unsigned int yield_counter = 0;
         do {
 					
-            PA_YieldAbsolute();
+					yield_counter++;
+					if((yield_counter % YIELD_FACTOR) == 0)
+					{
+						PA_YieldAbsolute();
+					}
+					
 					
             if (unzGetCurrentFileInfo64(hUnzip, &fileInfo, (char *)&szConFilename[0], PATH_MAX, NULL, 0, NULL, 0) != UNZ_OK){
                 returnValue.setIntValue(0);
@@ -534,9 +541,16 @@ void Unzip(sLONG_PTR *pResult, PackagePtr pParams)
                             
                             std::vector<uint8_t> buf(BUFFER_SIZE);
                             std::streamsize size;
-                            
+													
+													unsigned int yield_counter = 0;
+													
                             while ((size = unzReadCurrentFile(hUnzip, &buf[0], BUFFER_SIZE)) > 0){
-                                PA_YieldAbsolute();
+															yield_counter++;
+															if((yield_counter % YIELD_FACTOR) == 0)
+															{
+																PA_YieldAbsolute();
+															}
+															
                                 ofs.write((const char *)&buf[0], size);
                             }
                             
@@ -690,12 +704,19 @@ void get_subpaths(wstring& path,
     relative_path_t relative_path;
 
     if(h != INVALID_HANDLE_VALUE){
-        
+			
+			unsigned int yield_counter = 0;
+			
         do {
             
-            PA_YieldAbsolute();
-            
-            wstring sub_path = find.cFileName;	
+					yield_counter++;
+					if((yield_counter % YIELD_FACTOR) == 0)
+					{
+						PA_YieldAbsolute();
+					}
+					
+					
+            wstring sub_path = find.cFileName;
             
             if((!wcscmp(sub_path.c_str(), L"..")) || (!wcscmp(sub_path.c_str(), L".")))
                 continue;		
@@ -865,10 +886,14 @@ void get_subpaths(C_TEXT& Param,
                 includingPropertiesForKeys:[NSArray arrayWithObjects:NSURLIsDirectoryKey, NSURLIsHiddenKey, nil]
                 options:0
                 errorHandler:nil];
-                
+							unsigned int yield_counter = 0;
                 while(NSURL *u = [dirEnum nextObject]){
                 
-                    PA_YieldAbsolute();
+									yield_counter++;
+									if((yield_counter % YIELD_FACTOR) == 0)
+									{
+										PA_YieldAbsolute();
+									}
                     
                     NSNumber *isDirectory;
                     [u getResourceValue:&isDirectory forKey:NSURLIsDirectoryKey error:nil];
@@ -920,10 +945,15 @@ void get_subpaths(C_TEXT& Param,
                 }
                 
                 //a folder with contents
+
                 for(NSUInteger i = 0; i < [paths count]; i++){
                     
-                    PA_YieldAbsolute();
-                    
+									
+									if((i % YIELD_FACTOR) == 0)
+									{
+										PA_YieldAbsolute();
+									}
+									
                     NSString *itemPath = [paths objectAtIndex:i];   
                     NSString *itemFullPath = [path stringByAppendingPathComponent:itemPath];  
                     
@@ -985,9 +1015,14 @@ unsigned long getFileCrc(absolute_path_t &absolute_path)
 	if(ifs_crc.is_open())
 	{
 			std::vector<uint8_t> buf(BUFFER_SIZE);
+		unsigned int yield_counter = 0;
 			while(ifs_crc.good())
 			{
+				yield_counter++;
+				if((yield_counter % YIELD_FACTOR) == 0)
+				{
 					PA_YieldAbsolute();
+				}
 					ifs_crc.read((char *)&buf[0], BUFFER_SIZE);
 					CRC = crc32(CRC, (const Bytef *)&buf[0], ifs_crc.gcount());
 			}
@@ -1113,9 +1148,12 @@ void Zip(sLONG_PTR *pResult, PackagePtr pParams)
 						std::vector<uint8_t> buf(BUFFER_SIZE);
 					
             for (unsigned int i = 0; i < relative_paths.size(); ++i) {
-                
-                PA_YieldAbsolute();
-                
+							
+							if((i % YIELD_FACTOR) == 0)
+							{
+								PA_YieldAbsolute();
+							}
+							
                 relative_path_t relative_path = relative_paths.at(i);
                 absolute_path_t absolute_path = absolute_paths.at(i);
 								relative_path_t relative_path_utf8 = relative_path;
@@ -1315,9 +1353,13 @@ void Zip(sLONG_PTR *pResult, PackagePtr pParams)
                     std::ifstream ifs(absolute_path.c_str(), std::ios::in|std::ios::binary);
                 
                     if(ifs.is_open()){
-											
+											unsigned int yield_counter = 0;
                         while(ifs.good()){
-                            PA_YieldAbsolute();
+													yield_counter++;
+													if((yield_counter % YIELD_FACTOR) == 0)
+													{
+														PA_YieldAbsolute();
+													}
                             ifs.read((char *)&buf[0], BUFFER_SIZE);
 														if (with_encyption){
 															zipWriteInFileInZip(hZip, (char *)&buf[0], ifs.gcount());
