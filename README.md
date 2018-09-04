@@ -21,7 +21,7 @@ this version replaces the original [madler/zlib/minizip](https://github.com/madl
 
 * archive only the contents of the specified folder ``ZIP_Without_enclosing_folder``
 
-* keep UNIX attributes ``ZIP_With_attributes``
+* **Mac**: keep UNIX attributes and symbolic links ``ZIP_With_attributes``
 
 * ANSI code page (for old Windows)
 
