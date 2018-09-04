@@ -11,11 +11,17 @@ this version replaces the original [madler/zlib/minizip](https://github.com/madl
 
 * password protected zip (on files, not folders, for Mac Archive Utility)
 
-* LZMA (.7z) ``ZIP_7Z``
+* LZMA ``ZIP_7Z`` specify ".7z" as the output path
 
-* BZ2 (.bz2) ``ZIP_BZ2``
+* BZ2 ``ZIP_BZ2`` specify ".bz2" as the output path
 
-* AES encrypted zip, optionally with password (requires 7z or other capable unarchiver)
+* AES encrypted zip ``ZIP_With_encryption`` optionally with password (requires 7z or other capable unarchiver)
+
+* ignore dot files ``ZIP_Ignore_hidden``
+
+* archive only the contents of the specified folder ``ZIP_Without_enclosing_folder``
+
+* keep UNIX attributes ``ZIP_With_attributes``
 
 * ANSI code page (for old Windows)
 
@@ -143,12 +149,6 @@ Standard compression programs keep the top level folder in the relative path.
 
 You can compress just the contents of a folder by passing ```ZIP_Without_enclosing_folder (4)``` in options.  
 
-Compatibility
----
-* The v14 package is built with the new v14 architecture. Supports v14 or above, OS X 10.8+, 32/64 bits, Windows 32/64 bits.
-
-* The v11 package is built with the v11 architecture. Supports v11 or above, including v14, OS X 10.6+ 32 bits, Windows 32/64 bits.
-
 About Unicode
 ---
 The plugin will store the file paths in UTF-8 on both platforms.
@@ -158,31 +158,3 @@ You can safely unarchive such zip files using the plugin.
 However, the Windows kernel on Windows 7 and Windows Server 2008 R2 assumes that the paths are stored in the current locale, so UTF-8 paths will be converted wrongly. There is a Microsoft Patch to correct this.
 
 [http://support.microsoft.com/kb/2704299](http://support.microsoft.com/kb/2704299)
-
-New
----
-
-You can instruct the plugin to ignore files and folders whose name begins with a dot.
-
-You can specify the compression level (1 to 9).
-
-You can compress an empty folder. (why not?)
-
-When you compress a folder, the top-level folder name is included in the path.
-
-Example
----
-```
-$src:=Get 4D folder(Database folder)
-$dst:=System folder(Desktop)+"test.zip"
-$password:=""
-$compression_level:=1
-$ignore_dot:=1
-
-$success:=Zip ($src;$dst;$password;$compression_level;$ignore_dot)
-
-$src:=$dst
-$dst:=System folder(Desktop)+"test"
-
-$success:=Unzip ($src;$dst;$password;$ignore_dot)
-```
