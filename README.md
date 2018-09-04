@@ -5,6 +5,20 @@ the previous version is under the [classic-minizip](https://github.com/miyako/4d
 
 this version replaces the original [madler/zlib/minizip](https://github.com/madler/zlib/tree/master/contrib/minizip) with the [nmoinvaz/minizip](https://github.com/nmoinvaz/minizip) implementation
 
+### Features
+
+* multiple input for ``Zip`` (``C_TEXT`` or stringified ``C_COLLECTION``)
+
+* password protected zip (on files, not folders, for Mac Archive Utility)
+
+* LZMA (.7z) ``ZIP_7Z``
+
+* BZ2 (.bz2) ``ZIP_BZ2``
+
+* AES encrypted zip, optionally with password (requires 7z or other capable unarchiver)
+
+* ANSI code page (for old Windows)
+
 ### Platform
 
 | carbon | cocoa | win32 | win64 |
