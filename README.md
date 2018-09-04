@@ -17,7 +17,7 @@ this version replaces the original [madler/zlib/minizip](https://github.com/madl
 
 * AES encrypted zip ``ZIP_With_encryption`` optionally with password (requires 7z or other capable unarchiver)
 
-* ignore dot files ``ZIP_Ignore_hidden``
+* ignore dot files (also hidden files on Mac) ``ZIP_Ignore_hidden``
 
 * archive only the contents of the specified folder ``ZIP_Without_enclosing_folder``
 
