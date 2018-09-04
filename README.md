@@ -1,8 +1,9 @@
 # 4d-plugin-zip
 4D plugin to zip and unzip.
 
-xml
-zlib
+the previous version is under the [classic-minizip](https://github.com/miyako/4d-plugin-zip/tree/classic-minizip) branch
+
+this version replaces the original [minizip](https://github.com/madler/zlib/tree/master/contrib/minizip) with the [nmoinvaz/minizip](https://github.com/nmoinvaz/minizip) implementation
 
 ### Platform
 
