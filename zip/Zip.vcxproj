@@ -122,18 +122,6 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
     </ClCompile>
     <ClCompile Include="4DPlugin.cpp" />
-    <ClCompile Include="aes\aescrypt.c" />
-    <ClCompile Include="aes\aeskey.c" />
-    <ClCompile Include="aes\aestab.c" />
-    <ClCompile Include="aes\entropy.c" />
-    <ClCompile Include="aes\fileenc.c" />
-    <ClCompile Include="aes\hmac.c" />
-    <ClCompile Include="aes\prng.c" />
-    <ClCompile Include="aes\pwd2key.c" />
-    <ClCompile Include="aes\sha1.c" />
-    <ClCompile Include="zip\ioapi.c" />
-    <ClCompile Include="zip\unzip.c" />
-    <ClCompile Include="zip\zip.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="4D Plugin API\4DPluginAPI.h" />
@@ -158,22 +146,6 @@
     <ClInclude Include="4D Plugin API\PrivateTypes.h" />
     <ClInclude Include="4D Plugin API\PublicTypes.h" />
     <ClInclude Include="4DPlugin.h" />
-    <ClInclude Include="aes\aes.h" />
-    <ClInclude Include="aes\aesopt.h" />
-    <ClInclude Include="aes\aestab.h" />
-    <ClInclude Include="aes\aes_via_ace.h" />
-    <ClInclude Include="aes\brg_endian.h" />
-    <ClInclude Include="aes\brg_types.h" />
-    <ClInclude Include="aes\entropy.h" />
-    <ClInclude Include="aes\fileenc.h" />
-    <ClInclude Include="aes\hmac.h" />
-    <ClInclude Include="aes\prng.h" />
-    <ClInclude Include="aes\pwd2key.h" />
-    <ClInclude Include="aes\sha1.h" />
-    <ClInclude Include="zip\crypt.h" />
-    <ClInclude Include="zip\ioapi.h" />
-    <ClInclude Include="zip\unzip.h" />
-    <ClInclude Include="zip\zip.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="4D Plugin API\4DPluginAPI.def" />
@@ -302,7 +274,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>zip;include;4D Plugin API\Classes;4D Plugin API;$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>zip;include;include\mz;4D Plugin API\Classes;4D Plugin API;$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;MY4DPLUGIN_EXPORTS;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader>
@@ -322,12 +294,12 @@
       <EntryPointSymbol>
       </EntryPointSymbol>
       <AdditionalLibraryDirectories>VC14\x86</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libz.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libminizip.lib;jsoncpp.lib;zlib.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>zip;include;4D Plugin API\Classes;4D Plugin API;$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>zip;include;include\mz;4D Plugin API\Classes;4D Plugin API;$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN64;WIN32;NDEBUG;_WINDOWS;_USRDLL;MY4DPLUGIN_EXPORTS;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader>
@@ -346,7 +318,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <AdditionalLibraryDirectories>VC14\x86_64</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libz.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libminizip.lib;jsoncpp.lib;zlib.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

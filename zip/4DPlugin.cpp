@@ -167,14 +167,14 @@ void Unzip(sLONG_PTR *pResult, PackagePtr pParams)
     const char *pass = with_password ? password.c_str() : NULL;
     
     //src, dst
+	CUTF8String input_path;
+	Param1.copyPath(&input_path);
+	const char *input = (const char*)input_path.c_str();
 #if VERSIONMAC
-    CUTF8String input_path, output_path;
-    Param1.copyPath(&input_path);
+    CUTF8String output_path;
     Param2.copyPath(&output_path);
-    const char *input = (const char*)input_path.c_str();
     const char *output = (const char*)output_path.c_str();
 #else
-    const wchar_t *input = (const wchar_t*)Param1.getUTF16StringPtr();
     const wchar_t *output = (const wchar_t*)Param2.getUTF16StringPtr();
 #endif
     
@@ -686,7 +686,7 @@ void get_subpaths(wstring& path,
                     wcs_to_utf8(base_path, relative_path);
 					relative_path = folder_name + relative_path;
                     
-                    bool is_hidden = (GetFileAttributes(absolute_path)|FILE_ATTRIBUTE_HIDDEN)|(relative_path.at(0) == '.');
+                    bool is_hidden = (GetFileAttributes(absolute_path.c_str())|FILE_ATTRIBUTE_HIDDEN)|(relative_path.at(0) == '.');
                     
                     if(!ignore_dot || (!is_hidden && relative_path.find("/.") == string::npos)){
                      
@@ -790,7 +790,7 @@ void convertToString(C_TEXT &fromString, std::string &toString)
 #endif
 }
 
-void get_subpaths(std::string& spath,
+void get_subpaths(absolute_path_t& spath,
                   relative_paths_t *relative_paths,
                   absolute_paths_t *absolute_paths,
                   bool ignore_dot,
@@ -952,6 +952,7 @@ void get_subpaths(std::string& spath,
     
 #else
     relative_path_t folder_name;
+
     get_subpaths(spath, absolute_paths, relative_paths, folder_name, ignore_dot, without_enclosing_folder);
 #endif
 }
@@ -1047,14 +1048,10 @@ void Zip(sLONG_PTR *pResult, PackagePtr pParams)
     const char *pass = with_password ? password.c_str() : NULL;
     
     //dst
-#if VERSIONMAC
     CUTF8String output_path;
     Param2.copyPath(&output_path);
     const char *output = (const char*)output_path.c_str();
-#else
-    const wchar_t *output = (const wchar_t*)Param2.getUTF16StringPtr();
-#endif
-    
+
     //level
     unsigned int level = Param4.getIntValue();
     if(!level){

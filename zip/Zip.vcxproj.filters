@@ -72,18 +72,6 @@
     <ClCompile Include="4D Plugin API\Classes\ARRAY_TIME.cpp">
       <Filter>Source\4D Plugin API\Classes\ARRAY</Filter>
     </ClCompile>
-    <ClCompile Include="zip\ioapi.c" />
-    <ClCompile Include="zip\unzip.c" />
-    <ClCompile Include="zip\zip.c" />
-    <ClCompile Include="aes\aescrypt.c" />
-    <ClCompile Include="aes\aeskey.c" />
-    <ClCompile Include="aes\aestab.c" />
-    <ClCompile Include="aes\entropy.c" />
-    <ClCompile Include="aes\fileenc.c" />
-    <ClCompile Include="aes\hmac.c" />
-    <ClCompile Include="aes\prng.c" />
-    <ClCompile Include="aes\pwd2key.c" />
-    <ClCompile Include="aes\sha1.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="4DPlugin.h">
@@ -152,22 +140,6 @@
     <ClInclude Include="4D Plugin API\Classes\ARRAY_TIME.h">
       <Filter>Source\4D Plugin API\Classes\ARRAY</Filter>
     </ClInclude>
-    <ClInclude Include="zip\crypt.h" />
-    <ClInclude Include="zip\ioapi.h" />
-    <ClInclude Include="zip\unzip.h" />
-    <ClInclude Include="zip\zip.h" />
-    <ClInclude Include="aes\aes.h" />
-    <ClInclude Include="aes\aesopt.h" />
-    <ClInclude Include="aes\aestab.h" />
-    <ClInclude Include="aes\aes_via_ace.h" />
-    <ClInclude Include="aes\brg_endian.h" />
-    <ClInclude Include="aes\brg_types.h" />
-    <ClInclude Include="aes\entropy.h" />
-    <ClInclude Include="aes\fileenc.h" />
-    <ClInclude Include="aes\hmac.h" />
-    <ClInclude Include="aes\prng.h" />
-    <ClInclude Include="aes\pwd2key.h" />
-    <ClInclude Include="aes\sha1.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="4D Plugin API\4DPluginAPI.def">
