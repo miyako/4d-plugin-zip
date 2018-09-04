@@ -14,8 +14,76 @@
 void Unzip(sLONG_PTR *pResult, PackagePtr pParams);
 void Zip(sLONG_PTR *pResult, PackagePtr pParams);
 
-#include "zip.h"
-#include "unzip.h"
+#define HAVE_BZIP2
+#define HAVE_LZMA
+#define HAVE_AES
+#define HAVE_ZLIB
+#define HAVE_PKCRYPT
+
+#include "mz.h"
+#include "mz_os.h"
+#include "mz_strm.h"
+#include "mz_strm_buf.h"
+#include "mz_strm_split.h"
+#include "mz_zip.h"
+#include "mz_zip_rw.h"
+#include "mz_strm_mem.h"
+
+typedef struct mz_zip_writer_s {
+    void        *zip_handle;
+    void        *file_stream;
+    void        *buffered_stream;
+    void        *split_stream;
+    void        *mem_stream;
+    mz_zip_file file_info;
+    void        *overwrite_userdata;
+    mz_zip_writer_overwrite_cb
+    overwrite_cb;
+    void        *password_userdata;
+    mz_zip_writer_password_cb
+    password_cb;
+    void        *progress_userdata;
+    mz_zip_writer_progress_cb
+    progress_cb;
+    void        *entry_userdata;
+    mz_zip_writer_entry_cb
+    entry_cb;
+    const char  *password;
+    int16_t     compress_method;
+    int16_t     compress_level;
+    uint8_t     aes;
+    uint8_t     raw;
+    uint8_t     buffer[UINT16_MAX];
+} mz_zip_writer;
+
+typedef struct mz_zip_reader_s {
+    void        *zip_handle;
+    void        *file_stream;
+    void        *buffered_stream;
+    void        *split_stream;
+    void        *mem_stream;
+    mz_zip_file *file_info;
+    const char  *pattern;
+    uint8_t     pattern_ignore_case;
+    const char  *password;
+    void        *overwrite_userdata;
+    mz_zip_reader_overwrite_cb
+    overwrite_cb;
+    void        *password_userdata;
+    mz_zip_reader_password_cb
+    password_cb;
+    void        *progress_userdata;
+    mz_zip_reader_progress_cb
+    progress_cb;
+    void        *entry_userdata;
+    mz_zip_reader_entry_cb
+    entry_cb;
+    uint8_t     raw;
+    uint8_t     buffer[UINT16_MAX];
+    uint8_t     legacy_encoding;
+} mz_zip_reader;
+
+#include "json/json.h"
 
 #if VERSIONMAC
 #include "codepage/cpmap.h"
@@ -46,11 +114,14 @@ typedef PA_long32 method_id_t;
 
 #include <fstream>
 
+void convertToString(C_TEXT &fromString, std::string &toString);
+
 bool create_folder(absolute_path_t& absolute_path);
 void create_parent_folder(absolute_path_t& absolute_path);
 
 void copy_path(C_TEXT& t, absolute_path_t& p);
-                  
+void copy_path(std::string& t, absolute_path_t& p);
+
 void get_subpaths(C_TEXT& Param, 
                   relative_paths_t *relative_paths, 
                   absolute_paths_t *absolute_paths, 
@@ -77,3 +148,10 @@ void escape_path(wstring &path);
 void get_last_path_component(wstring &path, string &path_component);
 
 #endif
+
+/*
+ #define zipOpenNewFileInZip3_64_noAES zipOpenNewFileInZip3_64
+ #define zipOpenNewFileInZip64_noAES zipOpenNewFileInZip64
+ #define zipWriteInFileInZip_noAES zipWriteInFileInZip
+ #define zipCloseFileInZip_noAES zipCloseFileInZip
+ */

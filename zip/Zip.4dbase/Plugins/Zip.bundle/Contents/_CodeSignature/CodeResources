@@ -105,30 +105,21 @@
 			<key>optional</key>
 			<true/>
 		</dict>
-		<key>Resources/LICENSE (minizip-aes)</key>
+		<key>Resources/LICENSE (minizip)</key>
 		<data>
-		F6LTl+RBugQ3i5tHJ0u0h632bEQ=
+		snTMUv0G24Vigds1kxZ/h2XBSMk=
 		</data>
-		<key>Resources/README (zlib)</key>
+		<key>Resources/LICENSE (zlib)</key>
 		<data>
 		YFojeMktHKnLhQu0A8YEljRry90=
 		</data>
 		<key>Resources/constants.xlf</key>
 		<data>
-		SNJdz0YarD/gZ3kEY57Ma2uTMqM=
+		WLCT/F00rrfBYhe20wRVRijFGAU=
 		</data>
 	</dict>
 	<key>files2</key>
 	<dict>
-		<key>MacOS/Zip.html</key>
-		<dict>
-			<key>cdhash</key>
-			<data>
-			GU8aDzZBewM7etwWoTqiuHBrEks=
-			</data>
-			<key>requirement</key>
-			<string>identifier Zip and anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = Y69CWUC25B</string>
-		</dict>
 		<key>QuickLook/Thumbnail.png</key>
 		<dict>
 			<key>hash</key>
@@ -406,18 +397,18 @@
 			<key>optional</key>
 			<true/>
 		</dict>
-		<key>Resources/LICENSE (minizip-aes)</key>
+		<key>Resources/LICENSE (minizip)</key>
 		<dict>
 			<key>hash</key>
 			<data>
-			F6LTl+RBugQ3i5tHJ0u0h632bEQ=
+			snTMUv0G24Vigds1kxZ/h2XBSMk=
 			</data>
 			<key>hash2</key>
 			<data>
-			Z1GBwD/BMCochVTAD3vpu0IMXbydzCATQzzsFEQT3gM=
+			h2QjBZaHZaQDD9IC/3AGr6ZydNp/m96EUG5RrljswrQ=
 			</data>
 		</dict>
-		<key>Resources/README (zlib)</key>
+		<key>Resources/LICENSE (zlib)</key>
 		<dict>
 			<key>hash</key>
 			<data>
@@ -432,62 +423,40 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			SNJdz0YarD/gZ3kEY57Ma2uTMqM=
+			WLCT/F00rrfBYhe20wRVRijFGAU=
 			</data>
 			<key>hash2</key>
 			<data>
-			vPjLeBfD3UwvEuGGBQEq/rHiSU8lFh5t8zyAPofLr5M=
+			dZvmIzeTXZB8GaXO3fNF5Ba4DyO5HLAjcXl9zgoB65U=
 			</data>
 		</dict>
 		<key>Windows/Zip.4DX</key>
 		<dict>
 			<key>hash</key>
 			<data>
-			nFQ6Xe5pL2gWQkTYCOj7Z08ewtE=
+			CfJcpYzhjG+vlGxcm3+x4CsIfxU=
 			</data>
 			<key>hash2</key>
 			<data>
-			dXGTKM63K/g9lmFlyVozd5/eyFdM0iy+8Xd6hD7Ir4E=
-			</data>
-		</dict>
-		<key>Windows/Zip.html</key>
-		<dict>
-			<key>hash</key>
-			<data>
-			3f3hE90+GMuzyHmK9RVQvLK+Zs8=
-			</data>
-			<key>hash2</key>
-			<data>
-			EKLRdLPtg+PsdxOrCPdnhlHZLbWCJYLapu/sbQTYgHg=
+			tBFJ46FHpTG8yAaCgSmSeAP+/UajRbcQ5SrL/3xoKlc=
 			</data>
 		</dict>
 		<key>Windows64/Zip.4DX</key>
 		<dict>
 			<key>hash</key>
 			<data>
-			zfj4xbYiZMCOjnxcZNiWQX2ZnUY=
+			71th4pW11pK8cDURHBHv9AmktZg=
 			</data>
 			<key>hash2</key>
 			<data>
-			ACK4uce/2IW/uhztRy7NTdtQ+7pCHGgu2hea7EXEUow=
-			</data>
-		</dict>
-		<key>Windows64/Zip.html</key>
-		<dict>
-			<key>hash</key>
-			<data>
-			3f3hE90+GMuzyHmK9RVQvLK+Zs8=
-			</data>
-			<key>hash2</key>
-			<data>
-			EKLRdLPtg+PsdxOrCPdnhlHZLbWCJYLapu/sbQTYgHg=
+			o5KJemqnk926++N4hi1ctQ89cy0eNTl+MkoEgYsxfZw=
 			</data>
 		</dict>
 		<key>manifest.json</key>
 		<dict>
 			<key>cdhash</key>
 			<data>
-			ghy+msw7kTaszwHSmG1qxJx0ZBM=
+			/gzEXKlB8Kvz/XPQvzCizoZ+PJI=
 			</data>
 			<key>requirement</key>
 			<string>identifier manifest and anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = Y69CWUC25B</string>
@@ -510,6 +479,11 @@
 			<true/>
 			<key>weight</key>
 			<real>1100</real>
+		</dict>
+		<key>^Resources/Base\.lproj/</key>
+		<dict>
+			<key>weight</key>
+			<real>1010</real>
 		</dict>
 		<key>^version.plist$</key>
 		<true/>
@@ -569,6 +543,11 @@
 			<true/>
 			<key>weight</key>
 			<real>1100</real>
+		</dict>
+		<key>^Resources/Base\.lproj/</key>
+		<dict>
+			<key>weight</key>
+			<real>1010</real>
 		</dict>
 		<key>^[^/]+$</key>
 		<dict>

@@ -12,12 +12,7 @@
 #include "4DPluginAPI.h"
 #include "4DPlugin.h"
 
-//#define zipOpenNewFileInZip3_64_noAES zipOpenNewFileInZip3_64
-//#define zipOpenNewFileInZip64_noAES zipOpenNewFileInZip64
-//#define zipWriteInFileInZip_noAES zipWriteInFileInZip
-//#define zipCloseFileInZip_noAES zipCloseFileInZip
-
-#define YIELD_FACTOR 0x2000
+#define YIELD_FACTOR 0x0100
 
 void PluginMain(PA_long32 selector, PA_PluginParameters params)
 {
@@ -57,90 +52,90 @@ void CommandDispatcher (PA_long32 pProcNum, sLONG_PTR *pResult, PackagePtr pPara
 #if VERSIONMAC
 void convertPathToCodepage(std::string &path, UInt32 codepage)
 {
-	CFStringEncoding encoding = _CFStringConvertWindowsCodepageToEncoding(codepage);
-	if((encoding != kCFStringEncodingInvalidId) && CFStringIsEncodingAvailable(encoding))
-	{
-		NSString *str = (NSString *)CFStringCreateWithBytes(kCFAllocatorDefault,
-																												(const UInt8 *)path.c_str(),
-																												path.length(),
-																												kCFStringEncodingUTF8,
-																												true);
-		if(str)
-		{
-			uint32_t size = CFStringGetMaximumSizeForEncoding([str length], encoding) + sizeof(PA_Unichar);	//2 bytes for null termination
-			std::vector<uint8_t> buf(size);
-			CFIndex len = 0;
-			CFStringGetBytes((CFStringRef)str, CFRangeMake(0, [str length]), encoding, '?', false, (UInt8 *)&buf[0], size, &len);
-			path = relative_path_t((char *)&buf[0], len);
-			[str release];
-		}
-	}
+    CFStringEncoding encoding = _CFStringConvertWindowsCodepageToEncoding(codepage);
+    if((encoding != kCFStringEncodingInvalidId) && CFStringIsEncodingAvailable(encoding))
+    {
+        NSString *str = (NSString *)CFStringCreateWithBytes(kCFAllocatorDefault,
+                                                            (const UInt8 *)path.c_str(),
+                                                            path.length(),
+                                                            kCFStringEncodingUTF8,
+                                                            true);
+        if(str)
+        {
+            uint32_t size = CFStringGetMaximumSizeForEncoding([str length], encoding) + sizeof(PA_Unichar);    //2 bytes for null termination
+            std::vector<uint8_t> buf(size);
+            CFIndex len = 0;
+            CFStringGetBytes((CFStringRef)str, CFRangeMake(0, [str length]), encoding, '?', false, (UInt8 *)&buf[0], size, &len);
+            path = relative_path_t((char *)&buf[0], len);
+            [str release];
+        }
+    }
 }
 #else
 void convertPathToCodepage(std::string &path, DWORD codepage, IMultiLanguage2 *mlang)
 {
-	if(mlang)
-	{
-		C_TEXT tempUstr;
-		UINT len, mlen, ulen;
-		DWORD mode = 0;
-		tempUstr.setUTF8String((const uint8_t *)path.c_str(), path.length());
-		ulen = -1;
-		LPWSTR ustr = (LPWSTR)tempUstr.getUTF16StringPtr();
-		mlang->ConvertStringFromUnicode(&mode, codepage, ustr, &ulen, NULL, &mlen);
-		len = mlen+2;
-		std::vector<uint8_t> buf(len);
-		if(S_OK == mlang->ConvertStringFromUnicode(&mode, codepage, ustr, &ulen, (CHAR *)&buf[0], &mlen))
-		{
-			path = std::string((char *)&buf[0]);
-		}
-	}
+    if(mlang)
+    {
+        C_TEXT tempUstr;
+        UINT len, mlen, ulen;
+        DWORD mode = 0;
+        tempUstr.setUTF8String((const uint8_t *)path.c_str(), path.length());
+        ulen = -1;
+        LPWSTR ustr = (LPWSTR)tempUstr.getUTF16StringPtr();
+        mlang->ConvertStringFromUnicode(&mode, codepage, ustr, &ulen, NULL, &mlen);
+        len = mlen+2;
+        std::vector<uint8_t> buf(len);
+        if(S_OK == mlang->ConvertStringFromUnicode(&mode, codepage, ustr, &ulen, (CHAR *)&buf[0], &mlen))
+        {
+            path = std::string((char *)&buf[0]);
+        }
+    }
 }
 #endif
 
 #if VERSIONMAC
 void convertPathFromCodepage(std::string &path, UInt32 codepage)
 {
-	CFStringEncoding encoding = _CFStringConvertWindowsCodepageToEncoding(codepage);
-	if((encoding != kCFStringEncodingInvalidId) && CFStringIsEncodingAvailable(encoding))
-	{
-		NSString *str = (NSString *)CFStringCreateWithBytes(kCFAllocatorDefault,
-																							(const UInt8 *)path.c_str(),
-																							path.length(),
-																							encoding,
-																							true);
-		if(str)
-		{
-			uint32_t size = CFStringGetMaximumSizeForEncoding([str length], kCFStringEncodingUTF8) + sizeof(PA_Unichar);	//2 bytes for null termination
-			std::vector<uint8_t> buf(size);
-			CFIndex len = 0;
-			CFStringGetBytes((CFStringRef)str, CFRangeMake(0, [str length]), kCFStringEncodingUTF8, '?', false, (UInt8 *)&buf[0], size, &len);
-			path = std::string((char *)&buf[0], len);
-			[str release];
-		}
-	}
+    CFStringEncoding encoding = _CFStringConvertWindowsCodepageToEncoding(codepage);
+    if((encoding != kCFStringEncodingInvalidId) && CFStringIsEncodingAvailable(encoding))
+    {
+        NSString *str = (NSString *)CFStringCreateWithBytes(kCFAllocatorDefault,
+                                                            (const UInt8 *)path.c_str(),
+                                                            path.length(),
+                                                            encoding,
+                                                            true);
+        if(str)
+        {
+            uint32_t size = CFStringGetMaximumSizeForEncoding([str length], kCFStringEncodingUTF8) + sizeof(PA_Unichar);    //2 bytes for null termination
+            std::vector<uint8_t> buf(size);
+            CFIndex len = 0;
+            CFStringGetBytes((CFStringRef)str, CFRangeMake(0, [str length]), kCFStringEncodingUTF8, '?', false, (UInt8 *)&buf[0], size, &len);
+            path = std::string((char *)&buf[0], len);
+            [str release];
+        }
+    }
 }
 #else
 void convertPathFromCodepage(std::string &path, DWORD codepage, IMultiLanguage2 *mlang)
 {
-	if(mlang)
-	{
-		LPSTR mstr = (LPSTR)path.c_str();
-		UINT mlen = -1;
-		UINT ulen, len;
-		DWORD mode = 0;
-		mlang->ConvertStringToUnicode(&mode, codepage, mstr, &mlen, NULL, &ulen);
-		len = ((ulen * 2) + 2);
-		std::vector<uint8_t> buf(len);
-		if(S_OK == mlang->ConvertStringToUnicode(&mode, codepage, mstr, &mlen, (WCHAR *)&buf[0], &ulen))
-		{
-			C_TEXT tempUstr;
-			tempUstr.setUTF16String((const PA_Unichar *)&buf[0], ulen);
-			CUTF8String tempStr;
-			tempUstr.copyUTF8String(&tempStr);
-			path = std::string((char *)tempStr.c_str());
-		}
-	}
+    if(mlang)
+    {
+        LPSTR mstr = (LPSTR)path.c_str();
+        UINT mlen = -1;
+        UINT ulen, len;
+        DWORD mode = 0;
+        mlang->ConvertStringToUnicode(&mode, codepage, mstr, &mlen, NULL, &ulen);
+        len = ((ulen * 2) + 2);
+        std::vector<uint8_t> buf(len);
+        if(S_OK == mlang->ConvertStringToUnicode(&mode, codepage, mstr, &mlen, (WCHAR *)&buf[0], &ulen))
+        {
+            C_TEXT tempUstr;
+            tempUstr.setUTF16String((const PA_Unichar *)&buf[0], ulen);
+            CUTF8String tempStr;
+            tempUstr.copyUTF8String(&tempStr);
+            path = std::string((char *)tempStr.c_str());
+        }
+    }
 }
 #endif
 
@@ -150,24 +145,26 @@ void convertPathFromCodepage(std::string &path, DWORD codepage, IMultiLanguage2 
 
 void Unzip(sLONG_PTR *pResult, PackagePtr pParams)
 {
-	C_TEXT Param1;
-	C_TEXT Param2;
-	C_TEXT Param3;
-	C_LONGINT Param4;
-	C_TEXT Param5;
-	C_LONGINT Param6;
-	C_LONGINT returnValue;
-
-	Param1.fromParamAtIndex(pParams, 1);
-	Param2.fromParamAtIndex(pParams, 2);
-	Param3.fromParamAtIndex(pParams, 3);
-	Param4.fromParamAtIndex(pParams, 4);
-	Param5.fromParamAtIndex(pParams, 5);
-	Param6.fromParamAtIndex(pParams, 6);
+    C_TEXT Param1;
+    C_TEXT Param2;
+    C_TEXT Param3;
+    C_LONGINT Param4;
+    C_TEXT Param5;
+    C_LONGINT Param6;
+    C_LONGINT returnValue;
+    
+    Param1.fromParamAtIndex(pParams, 1);//src
+    Param2.fromParamAtIndex(pParams, 2);//dst
+    Param3.fromParamAtIndex(pParams, 3);//pass
+    Param4.fromParamAtIndex(pParams, 4);//options
+    Param5.fromParamAtIndex(pParams, 5);//callback
+    Param6.fromParamAtIndex(pParams, 6);//codepage
     
     //pass
-    CUTF8String password;
-    Param3.copyUTF8String(&password);
+    std::string password;
+    convertToString(Param3, password);
+    bool with_password = (password.length() != 0);
+    const char *pass = with_password ? password.c_str() : NULL;
     
     //src, dst
 #if VERSIONMAC
@@ -178,440 +175,376 @@ void Unzip(sLONG_PTR *pResult, PackagePtr pParams)
     const char *output = (const char*)output_path.c_str();
 #else
     const wchar_t *input = (const wchar_t*)Param1.getUTF16StringPtr();
-    const wchar_t *output = (const wchar_t*)Param2.getUTF16StringPtr();    
-#endif  
+    const wchar_t *output = (const wchar_t*)Param2.getUTF16StringPtr();
+#endif
     
     unsigned int flags = Param4.getIntValue();
     
     bool ignore_dot = !!(flags & 1L);
     
-#if VERSIONMAC    
+#if VERSIONMAC
     bool with_atttributes = !!(flags & 2L);
 #else
-    bool with_atttributes = false;    
+    bool with_atttributes = false;
 #endif
-
+    
 #if VERSIONWIN
-	IMultiLanguage2 *mlang = NULL;
-	CoCreateInstance(CLSID_CMultiLanguage, NULL, CLSCTX_INPROC_SERVER, IID_IMultiLanguage2, (void **)&mlang);
-	DWORD codepage = 0;
+    IMultiLanguage2 *mlang = NULL;
+    CoCreateInstance(CLSID_CMultiLanguage, NULL, CLSCTX_INPROC_SERVER, IID_IMultiLanguage2, (void **)&mlang);
+    DWORD codepage = 0;
 #endif
-	
+    
     //callback
     method_id_t methodId = PA_GetMethodID((PA_Unichar *)Param5.getUTF16StringPtr());
     bool abortedByCallbackMethod = false;
-	
-	int charset = Param6.getIntValue();
-	
-    unzFile hUnzip = unzOpen64(input);
+    bool use_callback = Param5.getUTF16Length();
     
-    if (hUnzip){
+    int charset = Param6.getIntValue();
+    
+    double number_entry = 0;
+    double num_of_file = 0;
+    
+    void *reader = NULL;
+    
+    mz_zip_reader_create(&reader);
+    mz_zip_reader *h = (mz_zip_reader *)reader;
+    
+    unsigned int yield_counter = 0;
+    
+    std::vector<uint8_t> buf(BUFFER_SIZE);
+    
+    if(with_password)
+    {
+        mz_zip_writer_set_password(reader, pass);
+    }
+    
+    int32_t err = mz_zip_reader_open_file(reader, input);
+    
+    if (err == MZ_OK)
+    {
+#if VERSIONMAC
+        NSFileManager *fm = [[NSFileManager alloc]init];
         
-        returnValue.setIntValue(1);
-        
-        unz_file_info64 fileInfo;
-        unz_global_info64 globalInfo;
-        unz64_file_pos filePos;
-        
-        double number_entry;
-        
-//        bool isCallbackActive = false;
-					bool isCallbackActive = Param5.getUTF16Length();
-			
-//        if(methodId){
-            if(unzGetGlobalInfo64(hUnzip, &globalInfo) == UNZ_OK){
-                number_entry = globalInfo.number_entry;
-//                isCallbackActive = true;
-//            }
+        std::vector<TextEncoding> _encodings;
+        TextEncoding *encodings = NULL;
+        TECSnifferObjectRef sniffer = NULL;
+        int len = MAX_LENGTH_FOR_ENCODING_NAME;
+        ItemCount charset_count, charset_num;
+        ItemCount numTextEncodings;
+        ItemCount maxErrs;
+        ItemCount maxFeatures;
+        ItemCount *numErrsArray;
+        if(charset == CHARSET_AUTOMATIC)
+        {
+            if(!TECCountAvailableTextEncodings(&charset_count))
+            {
+                _encodings.resize(charset_count);
+                encodings = &_encodings[0];
+                TECGetAvailableTextEncodings(encodings, charset_count, &charset_num);
+                TECCreateSniffer(&sniffer, encodings, charset_num);
+            }
         }
-        
-        std::vector<uint8_t> szConFilename(PATH_MAX);
-        
-        relative_path_t relative_path;
-        absolute_path_t sub_path, absolute_path;
-
-#if VERSIONMAC
-            NSFileManager *fm = [[NSFileManager alloc]init];
-#endif  
-			
-#if VERSIONMAC
-			std::vector<TextEncoding> _encodings;
-			TextEncoding *encodings = NULL;
-			TECSnifferObjectRef sniffer = NULL;
-			int len = MAX_LENGTH_FOR_ENCODING_NAME;
-			ItemCount charset_count, charset_num;
-			ItemCount numTextEncodings;
-			ItemCount maxErrs;
-			ItemCount maxFeatures;
-			ItemCount *numErrsArray;
-			if(charset == CHARSET_AUTOMATIC)
-			{
-				if(!TECCountAvailableTextEncodings(&charset_count))
-				{
-					_encodings.resize(charset_count);
-					encodings = &_encodings[0];
-					TECGetAvailableTextEncodings(encodings, charset_count, &charset_num);
-					TECCreateSniffer(&sniffer, encodings, charset_num);
-				}
-			}
 #else
-			ULONG numTextEncodings = 0;
-			if(mlang)
-			{
-				ULONG charset_count, charset_celt = 32;//	number of codes page information to retrive at a time
-				MIMECPINFO charset_infos[32];
-				IEnumCodePage* codepages = NULL;
-				mlang->EnumCodePages(MIMECONTF_VALID, 0, &codepages);
-				if(codepages)
-				{
-					while(codepages->Next(charset_celt, charset_infos, &charset_count) == S_OK)
-					{
-						numTextEncodings += charset_count;
-					}
-					codepages->Release();
-				}
-			}
-#endif
-			unsigned int yield_counter = 0;
-        do {
-					
-					yield_counter++;
-					if((yield_counter % YIELD_FACTOR) == 0)
-					{
-						PA_YieldAbsolute();
-					}
-					
-					
-            if (unzGetCurrentFileInfo64(hUnzip, &fileInfo, (char *)&szConFilename[0], PATH_MAX, NULL, 0, NULL, 0) != UNZ_OK){
-                returnValue.setIntValue(0);
-                break;
-            }
-					
-					
-#if VERSIONWIN
-						relative_path = relative_path_t((const char *)&szConFilename[0]);
-						relative_path_t sub_path_utf8 = relative_path;
-#else
-						relative_path = absolute_path_t((const char *)&szConFilename[0]);
-						sub_path = relative_path;
-#endif
-					
-						if(charset == CHARSET_AUTOMATIC)
-						{
-#if VERSIONMAC
-							if(sniffer)
-							{
-								numTextEncodings = charset_num;
-								maxErrs = relative_path.size();
-								maxFeatures = relative_path.size();
-								std::vector<ItemCount> _numErrsArray(charset_count);
-								numErrsArray = &_numErrsArray[0];
-								std::vector<ItemCount> _numFeaturesArray(charset_count);
-								ItemCount *numFeaturesArray = &_numFeaturesArray[0];
-								if(!TECSniffTextEncoding(sniffer,
-									(ConstTextPtr)relative_path.c_str(),
-									(ByteCount)relative_path.size(),
-									encodings,
-									numTextEncodings,
-									numErrsArray,
-									maxErrs,
-									numFeaturesArray,
-									maxFeatures))
-								{
-									RegionCode actualRegion;
-									TextEncoding actualEncoding;
-									ByteCount length;
-									TextEncoding unicode = CreateTextEncoding(kTextEncodingUnicodeDefault,
-																														kTextEncodingDefaultVariant,
-																														kUnicode16BitFormat);
-									
-									std::vector<char> buf(len);
-									if(!GetTextEncodingName(
-																					encodings[0],
-																					kTextEncodingFullName,
-																					0,
-																					unicode,
-																					len,
-																					&length,
-																					&actualRegion,
-																					&actualEncoding,
-																					(TextPtr)&buf[0]))
-									{
-										CFStringRef name = CFStringCreateWithCharacters(kCFAllocatorDefault, (const UniChar*)&buf[0], (length/2));
-										if(name)
-										{
-											UInt32 codepage = TextEncodingNameToWindowsCodepage(name);
-											if(codepage > 0)
-											{
-												convertPathFromCodepage(relative_path, codepage);
-												convertPathFromCodepage(sub_path, codepage);
-											}
-											CFRelease(name);
-										}
-									}
-								}
-							}
-#else
-							if(mlang)
-							{
-								char *data = (char *)relative_path.c_str();
-								size_t size = relative_path.size();
-								int scores = numTextEncodings;
-								std::vector<DetectEncodingInfo> encodings(scores);
-								mlang->DetectInputCodepage(MLDETECTCP_NONE, 0, data, (INT *)&size, &encodings[0], &scores);
-								INT confidence = 0;
-								
-								for(int i = 0; i < scores ; ++i)
-								{
-									if(encodings[i].nLangID != 0)
-									{
-										if(confidence < encodings[i].nConfidence){
-											codepage = encodings[i].nCodePage;
-										}
-									}
-								}
-								if(codepage > 0)
-								{
-									convertPathFromCodepage(relative_path, codepage, mlang);
-									convertPathFromCodepage(sub_path_utf8, codepage, mlang);
-								}
-							}
-#endif
-						}else if(charset > 0)
-						{
-#if VERSIONMAC
-							convertPathFromCodepage(relative_path, charset);
-							convertPathFromCodepage(sub_path, charset);
-#else
-							convertPathFromCodepage(relative_path, charset, mlang);
-							convertPathFromCodepage(sub_path_utf8, charset, mlang);
-#endif
-						}
-#if VERSIONWIN
-					unescape_path(sub_path_utf8);
-					utf8_to_wcs(sub_path_utf8, sub_path);
-#endif
-            absolute_path = output;
-            absolute_path+= folder_separator + sub_path;
-            
-            //callback
-            if(isCallbackActive){
-                
-                double compressed_size = fileInfo.compressed_size;
-                double uncompressed_size = fileInfo.uncompressed_size;
-                    
-                if(unzGetFilePos64(hUnzip, &filePos) == UNZ_OK){
-                
-                    double num_of_file = filePos.num_of_file;
-
-										if(methodId)
-										{
-											PA_Variable	params[6];
-											params[0] = PA_CreateVariable(eVK_Unistring);
-											params[1] = PA_CreateVariable(eVK_Unistring);
-											params[2] = PA_CreateVariable(eVK_Real);
-											params[3] = PA_CreateVariable(eVK_Real);
-											params[4] = PA_CreateVariable(eVK_Real);
-											params[5] = PA_CreateVariable(eVK_Real);
-											
-											C_TEXT tempUstr;
-											tempUstr.setUTF8String((const uint8_t *)relative_path.c_str(), relative_path.length());
-											PA_Unistring methodParam1 = PA_CreateUnistring((PA_Unichar *)tempUstr.getUTF16StringPtr());
-											PA_SetStringVariable(&params[0], &methodParam1);
-											tempUstr.setUTF8String((const uint8_t *)absolute_path.c_str(), absolute_path.length());
-											PA_Unistring methodParam2 = PA_CreateUnistring((PA_Unichar *)tempUstr.getUTF16StringPtr());
-											PA_SetStringVariable(&params[1], &methodParam2);
-											
-											PA_SetRealVariable(&params[2], num_of_file);
-											PA_SetRealVariable(&params[3], number_entry);
-											PA_SetRealVariable(&params[4], compressed_size);
-											PA_SetRealVariable(&params[5], uncompressed_size);
-											
-											PA_Variable result = PA_ExecuteMethodByID(methodId, params, 6);
-
-											if(PA_GetVariableKind(result) == eVK_Boolean)
-												abortedByCallbackMethod = PA_GetBooleanVariable(result);
-											
-										//	PA_DisposeUnistring(&methodParam1);
-										//	PA_DisposeUnistring(&methodParam2);
-											PA_ClearVariable(&params[0]);
-											PA_ClearVariable(&params[1]);
-											PA_ClearVariable(&params[2]);
-											PA_ClearVariable(&params[3]);
-											PA_ClearVariable(&params[4]);
-											PA_ClearVariable(&params[5]);
-											
-										}
-										else
-										{
-											PA_Variable	params[8];
-											params[2] = PA_CreateVariable(eVK_Unistring);
-											params[3] = PA_CreateVariable(eVK_Unistring);
-											params[4] = PA_CreateVariable(eVK_Real);
-											params[5] = PA_CreateVariable(eVK_Real);
-											params[6] = PA_CreateVariable(eVK_Real);
-											params[7] = PA_CreateVariable(eVK_Real);
-											
-											params[0] = PA_CreateVariable(eVK_Unistring);
-											PA_Unistring _methodName = PA_CreateUnistring((PA_Unichar *)Param5.getUTF16StringPtr());
-											PA_SetStringVariable(&params[0], &_methodName);
-											
-											params[1] = PA_CreateVariable(eVK_Boolean);
-											PA_SetBooleanVariable(&params[1], false);
-											
-											C_TEXT tempUstr;
-											tempUstr.setUTF8String((const uint8_t *)relative_path.c_str(), relative_path.length());
-											PA_Unistring methodParam1 = PA_CreateUnistring((PA_Unichar *)tempUstr.getUTF16StringPtr());
-											PA_SetStringVariable(&params[2], &methodParam1);
-											tempUstr.setUTF8String((const uint8_t *)absolute_path.c_str(), absolute_path.length());
-											PA_Unistring methodParam2 = PA_CreateUnistring((PA_Unichar *)tempUstr.getUTF16StringPtr());
-											PA_SetStringVariable(&params[3], &methodParam2);
-											
-											PA_SetRealVariable(&params[4], num_of_file);
-											PA_SetRealVariable(&params[5], number_entry);
-											PA_SetRealVariable(&params[6], compressed_size);
-											PA_SetRealVariable(&params[7], uncompressed_size);
-											
-											PA_ExecuteCommandByID(1007, params, 8);
-											
-											abortedByCallbackMethod = PA_GetBooleanVariable(params[1]);
-
-											PA_ClearVariable(&params[0]);
-											PA_ClearVariable(&params[1]);
-											PA_ClearVariable(&params[2]);
-											PA_ClearVariable(&params[3]);
-											PA_ClearVariable(&params[4]);
-											PA_ClearVariable(&params[5]);
-											PA_ClearVariable(&params[6]);
-											PA_ClearVariable(&params[7]);
-										}
-	
+        ULONG numTextEncodings = 0;
+        if(mlang)
+        {
+            ULONG charset_count, charset_celt = 32;//    number of codes page information to retrive at a time
+            MIMECPINFO charset_infos[32];
+            IEnumCodePage* codepages = NULL;
+            mlang->EnumCodePages(MIMECONTF_VALID, 0, &codepages);
+            if(codepages)
+            {
+                while(codepages->Next(charset_celt, charset_infos, &charset_count) == S_OK)
+                {
+                    numTextEncodings += charset_count;
                 }
-
+                codepages->Release();
             }
-
-            if(relative_path.size() > 1){
-                if( !ignore_dot || ((relative_path.at(0) != '.') && relative_path.find("/.") == std::string::npos)){
+        }
+#endif
+        mz_zip_file *zi = NULL;
+        
+        err = mz_zip_reader_goto_first_entry(reader);
+        
+        if (err == MZ_OK)
+        {
+            number_entry++;
+            
+            do
+            {
+                err = mz_zip_reader_entry_get_info(reader, &zi);
+                
+                 if (err == MZ_OK)
+                 {
+                     
+                     err = mz_zip_reader_goto_next_entry(reader);
+                     if (err == MZ_OK)
+                     {
+                         number_entry++;
+                     }
+                 }
+                
+            }
+            while (err == MZ_OK);
+            
+            if (err == MZ_END_OF_LIST)
+            {
+                err = mz_zip_reader_goto_first_entry(reader);
+                
+                if (err == MZ_OK)
+                {
+                    num_of_file++;
                     
-                    create_parent_folder(absolute_path);
-                    
-                    if(relative_path.at(relative_path.size() - 1) == folder_separator){
-                    
-                        create_folder(absolute_path);
+                    do
+                    {
+                        err = mz_zip_reader_entry_get_info(reader, &zi);
                         
-                    }
-
-                    if(password.length()){
-                        if(unzOpenCurrentFilePassword(hUnzip, (const char *)password.c_str()) != UNZ_OK){
-                            returnValue.setIntValue(0);
-                            break;
-                        }  
-                    }else{ 
-                        if(unzOpenCurrentFile(hUnzip) != UNZ_OK){
-                            returnValue.setIntValue(0);
-                            break;
-                        }
-                    }
-                    
-                    bool symbolicLinkCreated = false;
-#if VERSIONMAC                     
-                    if(with_atttributes){
-                    
-                        if(((fileInfo.external_fa >> 16L) & 0xA000) == 0xA000){
-                        
-                            std::vector<char> buf(PATH_MAX);
-                            int len = unzReadCurrentFile(hUnzip, &buf[0], PATH_MAX);
+                        if (err == MZ_OK)
+                        {
+                            relative_path_t relative_path;
+                            absolute_path_t sub_path, absolute_path;
                             
-                            if(len > 0){
-                                NSString *destinationPath =[[NSString alloc]initWithBytes:&buf[0] length:len encoding:NSUTF8StringEncoding];
-                                NSString *fullPath = [[NSString alloc]initWithUTF8String:absolute_path.c_str()];
-                                symbolicLinkCreated = [fm createSymbolicLinkAtPath:fullPath withDestinationPath:destinationPath error:nil];
-                                [fullPath release];
-                                [destinationPath release];
-                            }                        
-                        
-                        }
-                         
-                    }
-#endif 
-                    if(!symbolicLinkCreated){
-                        std::ofstream ofs(absolute_path.c_str(), std::ios::out|std::ios::binary);
-                        
-                        if(ofs.is_open()){
+                            double compressed_size = zi->compressed_size;
+                            double uncompressed_size = zi->uncompressed_size;
                             
-                            std::vector<uint8_t> buf(BUFFER_SIZE);
-                            std::streamsize size;
-													
-													unsigned int yield_counter = 0;
-													
-                            while ((size = unzReadCurrentFile(hUnzip, &buf[0], BUFFER_SIZE)) > 0){
-															yield_counter++;
-															if((yield_counter % YIELD_FACTOR) == 0)
-															{
-																PA_YieldAbsolute();
-															}
-															
-                                ofs.write((const char *)&buf[0], size);
+#if VERSIONWIN
+                            relative_path = relative_path_t(zi->filename);
+                            relative_path_t sub_path_utf8 = relative_path;
+#else
+                            relative_path = absolute_path_t(zi->filename);
+                            sub_path = relative_path;
+#endif
+                            if(charset == CHARSET_AUTOMATIC)
+                            {
+#if VERSIONMAC
+                                if(sniffer)
+                                {
+                                    numTextEncodings = charset_num;
+                                    maxErrs = relative_path.size();
+                                    maxFeatures = relative_path.size();
+                                    std::vector<ItemCount> _numErrsArray(charset_count);
+                                    numErrsArray = &_numErrsArray[0];
+                                    std::vector<ItemCount> _numFeaturesArray(charset_count);
+                                    ItemCount *numFeaturesArray = &_numFeaturesArray[0];
+                                    if(!TECSniffTextEncoding(sniffer,
+                                                             (ConstTextPtr)relative_path.c_str(),
+                                                             (ByteCount)relative_path.size(),
+                                                             encodings,
+                                                             numTextEncodings,
+                                                             numErrsArray,
+                                                             maxErrs,
+                                                             numFeaturesArray,
+                                                             maxFeatures))
+                                    {
+                                        RegionCode actualRegion;
+                                        TextEncoding actualEncoding;
+                                        ByteCount length;
+                                        TextEncoding unicode = CreateTextEncoding(kTextEncodingUnicodeDefault,
+                                                                                  kTextEncodingDefaultVariant,
+                                                                                  kUnicode16BitFormat);
+                                        
+                                        std::vector<char> buf(len);
+                                        if(!GetTextEncodingName(
+                                                                encodings[0],
+                                                                kTextEncodingFullName,
+                                                                0,
+                                                                unicode,
+                                                                len,
+                                                                &length,
+                                                                &actualRegion,
+                                                                &actualEncoding,
+                                                                (TextPtr)&buf[0]))
+                                        {
+                                            CFStringRef name = CFStringCreateWithCharacters(kCFAllocatorDefault, (const UniChar*)&buf[0], (length/2));
+                                            if(name)
+                                            {
+                                                UInt32 codepage = TextEncodingNameToWindowsCodepage(name);
+                                                if(codepage > 0)
+                                                {
+                                                    convertPathFromCodepage(relative_path, codepage);
+                                                    convertPathFromCodepage(sub_path, codepage);
+                                                }
+                                                CFRelease(name);
+                                            }
+                                        }
+                                    }
+                                }
+#else
+                                if(mlang)
+                                {
+                                    char *data = (char *)relative_path.c_str();
+                                    size_t size = relative_path.size();
+                                    int scores = numTextEncodings;
+                                    std::vector<DetectEncodingInfo> encodings(scores);
+                                    mlang->DetectInputCodepage(MLDETECTCP_NONE, 0, data, (INT *)&size, &encodings[0], &scores);
+                                    INT confidence = 0;
+                                    
+                                    for(int i = 0; i < scores ; ++i)
+                                    {
+                                        if(encodings[i].nLangID != 0)
+                                        {
+                                            if(confidence < encodings[i].nConfidence){
+                                                codepage = encodings[i].nCodePage;
+                                            }
+                                        }
+                                    }
+                                    if(codepage > 0)
+                                    {
+                                        convertPathFromCodepage(relative_path, codepage, mlang);
+                                        convertPathFromCodepage(sub_path_utf8, codepage, mlang);
+                                    }
+                                }
+#endif
+                            }else if(charset > 0)
+                            {
+#if VERSIONMAC
+                                convertPathFromCodepage(relative_path, charset);
+                                convertPathFromCodepage(sub_path, charset);
+#else
+                                convertPathFromCodepage(relative_path, charset, mlang);
+                                convertPathFromCodepage(sub_path_utf8, charset, mlang);
+#endif
+                            }
+      
+#if VERSIONWIN
+                            unescape_path(sub_path_utf8);
+                            utf8_to_wcs(sub_path_utf8, sub_path);
+#endif
+                            
+                            absolute_path = output;
+                            absolute_path+= folder_separator + sub_path;
+                            
+                            if(use_callback)
+                            {
+                                
                             }
                             
-                            ofs.close();
+                            if(relative_path.size() > 1)
+                            {
+                                if( !ignore_dot || ((relative_path.at(0) != '.') && relative_path.find("/.") == std::string::npos))
+                                {
+                                    create_parent_folder(absolute_path);
+                                    
+                                    if(relative_path.at(relative_path.size() - 1) == folder_separator)
+                                    {
+                                        
+                                        create_folder(absolute_path);
+                                    }
+                                    
+                                     bool symbolicLinkCreated = false;
+                                    
+#if VERSIONMAC
+                                    if(with_atttributes){
+                                        
+                                        if(((zi->external_fa >> 16L) & 0xA000) == 0xA000)
+                                        {
+   
+                                            std::vector<char> _buf(PATH_MAX);
+                                            int32_t read = mz_zip_entry_read(h->zip_handle, &_buf[0], PATH_MAX);
+                                            if(read > 0)
+                                            {
+                                                NSString *destinationPath =[[NSString alloc]initWithBytes:&_buf[0] length:len encoding:NSUTF8StringEncoding];
+                                                NSString *fullPath = [[NSString alloc]initWithUTF8String:absolute_path.c_str()];
+                                                symbolicLinkCreated = [fm createSymbolicLinkAtPath:fullPath withDestinationPath:destinationPath error:nil];
+                                                [fullPath release];
+                                                [destinationPath release];
+                                            }
+                                            
+                                        }
+                                        
+                                    }
+#endif
+                                    if(!symbolicLinkCreated)
+                                    {
+                                        std::ofstream ofs(absolute_path.c_str(), std::ios::out|std::ios::binary);
+                                        
+                                        if(ofs.is_open())
+                                        {
+                                            int32_t read;
+                                            
+                                            err = mz_zip_entry_read_open(h->zip_handle, h->raw, pass);
+                                            
+                                            if (err == MZ_OK)
+                                            {
+                                                while ((read = mz_zip_entry_read(h->zip_handle, &buf[0], BUFFER_SIZE)) > 0)
+                                                {
+                                                    yield_counter++;
+                                                    
+                                                    ofs.write((const char *)&buf[0], read);
+                                                    
+                                                    if((yield_counter % YIELD_FACTOR) == 0)
+                                                    {
+                                                        PA_YieldAbsolute();
+                                                    }
+                                                }
+                                                
+                                                mz_zip_entry_close(h->zip_handle);
+                                                
+                                            }
+                                            ofs.close();                                            
+                                        }
+                                    }
+#if VERSIONMAC
+                                    if(with_atttributes)
+                                    {
+                                        short permission = (zi->external_fa >> 16L) & 0x01FF;
+                                        
+                                        if(permission)
+                                        {
+                                            yield_counter++;
+                                            
+                                            NSDictionary *itemAttributes = [NSDictionary
+                                                                            dictionaryWithObject:[NSNumber numberWithShort:permission]
+                                                                            forKey:NSFilePosixPermissions];
+                                            
+                                            NSString *fullPath = [[NSString alloc]initWithUTF8String:absolute_path.c_str()];
+                                            [fm setAttributes:itemAttributes ofItemAtPath:fullPath error:nil];
+                                            [fullPath release];
+                                        }
+                                        
+                                    }
+#endif
+                                }
+                                
+                            }
+
+                            err = mz_zip_reader_goto_next_entry(reader);
                             
-                        }                    
-                    
-                    }
-                    
-#if VERSIONMAC  
-                    if(with_atttributes){
-                    
-                        short permission = (fileInfo.external_fa >> 16L) & 0x01FF;
-                        
-                        if(permission){
-                        
-                            NSDictionary *itemAttributes = [NSDictionary
-                                                            dictionaryWithObject:[NSNumber numberWithShort:permission]
-                                                            forKey:NSFilePosixPermissions];
-                            
-                            NSString *fullPath = [[NSString alloc]initWithUTF8String:absolute_path.c_str()];
-                            [fm setAttributes:itemAttributes ofItemAtPath:fullPath error:nil];
-                            [fullPath release];
-                            
+                            if (err == MZ_OK)
+                            {
+                                num_of_file++;
+                            }
                         }
-
-                    }                    
-#endif 
-                }   
-                
+                    }
+                    while (err == MZ_OK && !abortedByCallbackMethod);
+                }
             }
-
-            unzCloseCurrentFile(hUnzip);
-            
-        } while (!abortedByCallbackMethod && (unzGoToNextFile(hUnzip) != UNZ_END_OF_LIST_OF_FILE));
- 
+        }
 #if VERSIONMAC
-            [fm release];
-#endif         
-
-#if VERSIONMAC
-			if(sniffer)
-			{
-				TECDisposeSniffer(sniffer);
-			}
+        [fm release];
+        
+        if(sniffer)
+        {
+            TECDisposeSniffer(sniffer);
+        }
 #endif
-        unzClose(hUnzip);	
-    }     
-	
+        mz_zip_reader_close(reader);
+    }
+    
+    mz_zip_reader_delete(&reader);
+    
 #if VERSIONWIN
-		if(mlang)
-		{
-			mlang->Release();
-		}
+    if(mlang)
+    {
+        mlang->Release();
+    }
 #endif
-	
+    
     if(abortedByCallbackMethod){
         returnValue.setIntValue(0);
-    }   
-                            
-	returnValue.setReturn(pResult);
+    }
+    
+    returnValue.setReturn(pResult);
 }
 
 #ifdef WIN32
@@ -619,9 +552,9 @@ void Unzip(sLONG_PTR *pResult, PackagePtr pParams)
 using namespace std;
 
 int wcs_to_utf8(wstring& wstr, string& str){
-   
-    int error = 0; 
-    
+
+    int error = 0;
+
     int len = WideCharToMultiByte(CP_UTF8, 0, (LPCWSTR)wstr.c_str(), wstr.length(), NULL, 0, NULL, NULL);
     if(len){
         vector<char> buf(len + 1);
@@ -632,12 +565,12 @@ int wcs_to_utf8(wstring& wstr, string& str){
         str = string((const char *)"");
         error = -1;
     }
-    
-    return error;   
-    
+
+    return error;
+
 }
 
-int utf8_to_wcs(string& str, wstring& wstr)
+int utf8_to_wcs(string& str, std::wstring& wstr)
 {
    
     int error = 0; 
@@ -752,8 +685,10 @@ void get_subpaths(wstring& path,
                     escape_path(base_path);
                     wcs_to_utf8(base_path, relative_path);
 					relative_path = folder_name + relative_path;
-
-                    if(!ignore_dot || ((relative_path.at(0) != '.') && relative_path.find("/.") == string::npos)){
+                    
+                    bool is_hidden = (GetFileAttributes(absolute_path)|FILE_ATTRIBUTE_HIDDEN)|(relative_path.at(0) == '.');
+                    
+                    if(!ignore_dot || (!is_hidden && relative_path.find("/.") == string::npos)){
                      
                         absolute_paths->push_back(absolute_path);
                         
@@ -827,135 +762,158 @@ void get_subpaths(wstring& path,
 }
 #endif
 
-void get_subpaths(C_TEXT& Param, 
-                  relative_paths_t *relative_paths, 
-                  absolute_paths_t *absolute_paths, 
+void convertToString(C_TEXT &fromString, std::string &toString)
+{
+#ifdef _WIN32
+    int len = WideCharToMultiByte(CP_UTF8, 0, (LPCWSTR)fromString.getUTF16StringPtr(), fromString.getUTF16Length(), NULL, 0, NULL, NULL);
+    
+    if(len){
+        std::vector<uint8_t> buf(len + 1);
+        if(WideCharToMultiByte(CP_UTF8, 0, (LPCWSTR)fromString.getUTF16StringPtr(), fromString.getUTF16Length(), (LPSTR)&buf[0], len, NULL, NULL)){
+            toString = std::string((const char *)&buf[0]);
+        }
+    }else{
+        toString = std::string((const char *)"\0");
+    }
+#else
+    CFStringRef str = CFStringCreateWithCharacters(kCFAllocatorDefault, (const UniChar *)fromString.getUTF16StringPtr(), fromString.getUTF16Length());
+    if(str){
+        
+        size_t size = CFStringGetMaximumSizeForEncoding(CFStringGetLength(str), kCFStringEncodingUTF8) + sizeof(uint8_t);
+        std::vector<uint8_t> buf(size);
+        CFIndex len = 0;
+        CFStringGetBytes(str, CFRangeMake(0, CFStringGetLength(str)), kCFStringEncodingUTF8, 0, true, (UInt8 *)&buf[0], size, &len);
+        
+        toString = std::string((const char *)&buf[0], len);
+        CFRelease(str);
+    }
+#endif
+}
+
+void get_subpaths(std::string& spath,
+                  relative_paths_t *relative_paths,
+                  absolute_paths_t *absolute_paths,
                   bool ignore_dot,
                   bool with_atttributes,
-                  bool without_enclosing_folder){
-    
-    relative_paths->clear();
-    absolute_paths->clear();
-    
+                  bool without_enclosing_folder)
+{
 #if VERSIONMAC
-    
-    std::string spath;
-    copy_path(Param, spath);
-    NSString *path = (NSString *)CFStringCreateWithFileSystemRepresentation(kCFAllocatorDefault, spath.c_str());	
+    NSString *path = (NSString *)CFStringCreateWithFileSystemRepresentation(kCFAllocatorDefault, spath.c_str());
     
     //semantically the same string but the result from subpathsOfDirectoryAtPath is wrong if we use this:
     //NSString *path = Param.copyPath();
+    //maybe because of trailing nulls?
     
     NSFileManager *fm = [[NSFileManager alloc]init];
     
     BOOL isDirectory = YES;
     
     if(with_atttributes){
-    
+        
         NSDictionary *attributes = [fm attributesOfItemAtPath:path error:nil];
         
         if(attributes){
-            if([[attributes valueForKey:NSFileType]isEqualToString:NSFileTypeSymbolicLink] 
-            || [[attributes valueForKey:NSFileType]isEqualToString:NSFileTypeRegular]){
+            if([[attributes valueForKey:NSFileType]isEqualToString:NSFileTypeSymbolicLink]
+               || [[attributes valueForKey:NSFileType]isEqualToString:NSFileTypeRegular]){
                 
                 //over-ride ignore_dot, this is top level
                 relative_paths->push_back(std::string([[path lastPathComponent]UTF8String]));
                 absolute_paths->push_back(spath);
                 
             }else
-            if([[attributes valueForKey:NSFileType]isEqualToString:NSFileTypeDirectory]){
-            
-                NSString *folderName = [[path lastPathComponent]stringByAppendingString:@"/"];
-                NSString *folderPath = [path stringByDeletingLastPathComponent];
-                if(![[folderPath substringFromIndex:[folderPath length]]isEqualToString:@"/"]){
-                    folderPath = [folderPath stringByAppendingString:@"/"];
-                }
-                
-                NSURL *baseUrl = [NSURL fileURLWithPath:path isDirectory:YES]; 
-                NSString *basePath = [baseUrl path];
-                if(![[basePath substringFromIndex:[basePath length]]isEqualToString:@"/"]){
-                    basePath = [basePath stringByAppendingString:@"/"];
-                }
-                
-                if(!without_enclosing_folder){
-                    relative_paths->push_back([folderName UTF8String]);	
-                    absolute_paths->push_back([basePath UTF8String]);
-                }
-                                
-                NSDirectoryEnumerator *dirEnum = [fm enumeratorAtURL:baseUrl 
-                includingPropertiesForKeys:[NSArray arrayWithObjects:NSURLIsDirectoryKey, NSURLIsHiddenKey, nil]
-                options:0
-                errorHandler:nil];
-							unsigned int yield_counter = 0;
-                while(NSURL *u = [dirEnum nextObject]){
-                
-									yield_counter++;
-									if((yield_counter % YIELD_FACTOR) == 0)
-									{
-										PA_YieldAbsolute();
-									}
+                if([[attributes valueForKey:NSFileType]isEqualToString:NSFileTypeDirectory]){
                     
-                    NSNumber *isDirectory;
-                    [u getResourceValue:&isDirectory forKey:NSURLIsDirectoryKey error:nil];
+                    NSString *folderName = [[path lastPathComponent]stringByAppendingString:@"/"];
+                    NSString *folderPath = [path stringByDeletingLastPathComponent];
+                    if(![[folderPath substringFromIndex:[folderPath length]]isEqualToString:@"/"]){
+                        folderPath = [folderPath stringByAppendingString:@"/"];
+                    }
                     
-                    NSNumber *isHidden;
-                    [u getResourceValue:&isHidden forKey:NSURLIsHiddenKey error:nil];
+                    NSURL *baseUrl = [NSURL fileURLWithPath:path isDirectory:YES];
+                    NSString *basePath = [baseUrl path];
+                    if(![[basePath substringFromIndex:[basePath length]]isEqualToString:@"/"]){
+                        basePath = [basePath stringByAppendingString:@"/"];
+                    }
                     
-                    NSString *fullPath = [u path];
-
-                    if([isDirectory boolValue])
-                            fullPath = [fullPath stringByAppendingString:@"/"];
-                       
-                    absolute_path_t absolute_path = [fullPath UTF8String];
-                    relative_path_t relative_path = [[fullPath substringFromIndex:[folderPath length]]UTF8String];
+                    if(!without_enclosing_folder){
+                        relative_paths->push_back([folderName UTF8String]);
+                        absolute_paths->push_back([basePath UTF8String]);
+                    }
                     
-                    if(!ignore_dot || (((relative_path.at(0) != '.') && relative_path.find("/.") == std::string::npos) && ![isHidden boolValue])){
-                    
-                        absolute_paths->push_back(absolute_path);
+                    NSDirectoryEnumerator *dirEnum = [fm enumeratorAtURL:baseUrl
+                                              includingPropertiesForKeys:[NSArray arrayWithObjects:NSURLIsDirectoryKey, NSURLIsHiddenKey, nil]
+                                                                 options:0
+                                                            errorHandler:nil];
+                    unsigned int yield_counter = 0;
+                    while(NSURL *u = [dirEnum nextObject]){
                         
-                        if(!without_enclosing_folder){
-                            relative_paths->push_back(relative_path);	
-                        }else{
-                            relative_paths->push_back([[fullPath substringFromIndex:[basePath length]]UTF8String]);	
+                        yield_counter++;
+                        if((yield_counter % YIELD_FACTOR) == 0)
+                        {
+                            PA_YieldAbsolute();
+                        }
+                        
+                        NSNumber *isDirectory;
+                        [u getResourceValue:&isDirectory forKey:NSURLIsDirectoryKey error:nil];
+                        
+                        NSNumber *isHidden;
+                        [u getResourceValue:&isHidden forKey:NSURLIsHiddenKey error:nil];
+                        
+                        NSString *fullPath = [u path];
+                        
+                        if([isDirectory boolValue])
+                            fullPath = [fullPath stringByAppendingString:@"/"];
+                        
+                        absolute_path_t absolute_path = [fullPath UTF8String];
+                        relative_path_t relative_path = [[fullPath substringFromIndex:[folderPath length]]UTF8String];
+                        
+                        if(!ignore_dot || (((relative_path.at(0) != '.') && relative_path.find("/.") == std::string::npos) && ![isHidden boolValue])){
+                            
+                            absolute_paths->push_back(absolute_path);
+                            
+                            if(!without_enclosing_folder){
+                                relative_paths->push_back(relative_path);
+                            }else{
+                                relative_paths->push_back([[fullPath substringFromIndex:[basePath length]]UTF8String]);
+                            }
                         }
                     }
-                } 
-            }
+                }
         }//attributes
         
     }else{
-    
+        
         if([fm fileExistsAtPath:path isDirectory:&isDirectory]){
             
             if(isDirectory){
                 
                 NSString *folderName = [[path lastPathComponent]stringByAppendingString:@"/"];
-
-                NSURL *baseUrl = [NSURL fileURLWithPath:path isDirectory:YES]; 
+                
+                NSURL *baseUrl = [NSURL fileURLWithPath:path isDirectory:YES];
                 NSString *basePath = [baseUrl path];
                 if(![[basePath substringFromIndex:[basePath length]]isEqualToString:@"/"]){
                     basePath = [basePath stringByAppendingString:@"/"];
                 }
-
+                
                 NSArray *paths = (NSMutableArray *)[fm subpathsOfDirectoryAtPath:path error:NULL];
                 
                 if(!without_enclosing_folder){
-                    relative_paths->push_back([folderName UTF8String]);	
+                    relative_paths->push_back([folderName UTF8String]);
                     absolute_paths->push_back([basePath UTF8String]);
                 }
                 
                 //a folder with contents
-
+                
                 for(NSUInteger i = 0; i < [paths count]; i++){
                     
-									
-									if((i % YIELD_FACTOR) == 0)
-									{
-										PA_YieldAbsolute();
-									}
-									
-                    NSString *itemPath = [paths objectAtIndex:i];   
-                    NSString *itemFullPath = [path stringByAppendingPathComponent:itemPath];  
+                    
+                    if((i % YIELD_FACTOR) == 0)
+                    {
+                        PA_YieldAbsolute();
+                    }
+                    
+                    NSString *itemPath = [paths objectAtIndex:i];
+                    NSString *itemFullPath = [path stringByAppendingPathComponent:itemPath];
                     
                     if([fm fileExistsAtPath:itemFullPath isDirectory:&isDirectory]){
                         
@@ -966,81 +924,107 @@ void get_subpaths(C_TEXT& Param,
                         relative_path_t relative_path = [[folderName stringByAppendingString:itemPath]UTF8String];
                         
                         if(!ignore_dot || ((relative_path.at(0) != '.') && relative_path.find("/.") == std::string::npos)){
-                        
-                            	
+                            
+                            
                             absolute_paths->push_back(absolute_path);
                             
                             if(!without_enclosing_folder){
-                                relative_paths->push_back(relative_path);	
+                                relative_paths->push_back(relative_path);
                             }else{
-                                relative_paths->push_back([itemPath UTF8String]);	
+                                relative_paths->push_back([itemPath UTF8String]);
                             }
                         }
-                    }				    
+                    }
                 }
                 
-            }else{	
+            }else{
                 //a file (over-ride ignore_dot, this is top level)
                 relative_paths->push_back(std::string([[path lastPathComponent]UTF8String]));
                 absolute_paths->push_back(spath);
             }
             
-        }    
-            
+        }
+        
     }
     
-    [path release];	
-    [fm release];	
+    [path release];
+    [fm release];
     
 #else
-    
-    std::wstring path = std::wstring((wchar_t *)Param.getUTF16StringPtr());
-    
-	if(path.length()){
-		if(path.substr(path.length() - 1) == L"\\"){
-			path = path.substr(0, path.length() - 1);
-		}		
-	}
-    
-	relative_path_t folder_name;
-    get_subpaths(path, absolute_paths, relative_paths, folder_name, ignore_dot, without_enclosing_folder);
-    
-#endif	
+    relative_path_t folder_name;
+    get_subpaths(spath, absolute_paths, relative_paths, folder_name, ignore_dot, without_enclosing_folder);
+#endif
 }
 
-unsigned long getFileCrc(absolute_path_t &absolute_path)
-{
-	unsigned long CRC = crc32(0L, Z_NULL, 0);
-	std::ifstream ifs_crc(absolute_path.c_str(), std::ios::in|std::ios::binary);
-	if(ifs_crc.is_open())
-	{
-			std::vector<uint8_t> buf(BUFFER_SIZE);
-		unsigned int yield_counter = 0;
-			while(ifs_crc.good())
-			{
-				yield_counter++;
-				if((yield_counter % YIELD_FACTOR) == 0)
-				{
-					PA_YieldAbsolute();
-				}
-					ifs_crc.read((char *)&buf[0], BUFFER_SIZE);
-					CRC = crc32(CRC, (const Bytef *)&buf[0], ifs_crc.gcount());
-			}
-			ifs_crc.close();
-	}
-	return CRC;
+void get_subpaths(C_TEXT& Param, 
+                  relative_paths_t *relative_paths, 
+                  absolute_paths_t *absolute_paths, 
+                  bool ignore_dot,
+                  bool with_atttributes,
+                  bool without_enclosing_folder){
+    
+    relative_paths->clear();
+    absolute_paths->clear();
+    
+    using namespace Json;
+    using namespace std;
+    
+    string paths_json;
+    convertToString(Param, paths_json);
+    
+    CharReaderBuilder builder;
+    CharReader *reader = builder.newCharReader();
+    Value root;
+    string errors;
+    
+    bool parsingSuccessful;
+    
+    parsingSuccessful = reader->parse(paths_json.c_str(),
+                                      paths_json.c_str() + paths_json.size(),
+                                      &root,
+                                      &errors);
+    delete reader;
+    
+    vector<string>sources(0);
+    
+    if (parsingSuccessful)
+    {
+        if(root.type() == arrayValue)
+        {
+            for(Value::const_iterator it = root.begin() ; it != root.end() ; ++it)
+            {
+                if(it->isString())
+                {
+                    sources.push_back(it->asCString());
+                }
+            }
+        }
+    }else
+    {
+        sources.push_back(paths_json.c_str());
+    }
+    
+    for(size_t i = 0; i < sources.size(); ++i)
+    {
+        string source = sources.at(i);
+        absolute_path_t spath;
+        copy_path(source, spath);
+        
+        get_subpaths(spath, relative_paths, absolute_paths, ignore_dot, with_atttributes, without_enclosing_folder);
+    }
+
 }
 
 void Zip(sLONG_PTR *pResult, PackagePtr pParams)
 {
-
+    
     C_TEXT Param1;
     C_TEXT Param2;
     C_TEXT Param3;
     C_LONGINT Param4;
     C_LONGINT Param5;
     C_TEXT Param6;
-		C_LONGINT Param7;
+    C_LONGINT Param7;
     C_LONGINT returnValue;
     
     Param1.fromParamAtIndex(pParams, 1);//src
@@ -1050,29 +1034,31 @@ void Zip(sLONG_PTR *pResult, PackagePtr pParams)
     Param5.fromParamAtIndex(pParams, 5);//options
     Param6.fromParamAtIndex(pParams, 6);//callback
     Param7.fromParamAtIndex(pParams, 7);//codepage
-	
+    
     //src
     absolute_paths_t absolute_paths;
     relative_paths_t relative_paths;
     relative_path_t input_file_name;
     
     //pass
-    CUTF8String password;
-    Param3.copyUTF8String(&password);
+    std::string password;
+    convertToString(Param3, password);
+    bool with_password = (password.length() != 0);
+    const char *pass = with_password ? password.c_str() : NULL;
     
     //dst
-#if VERSIONMAC    
+#if VERSIONMAC
     CUTF8String output_path;
     Param2.copyPath(&output_path);
     const char *output = (const char*)output_path.c_str();
 #else
     const wchar_t *output = (const wchar_t*)Param2.getUTF16StringPtr();
-#endif  
+#endif
     
     //level
     unsigned int level = Param4.getIntValue();
     if(!level){
-        level = Z_DEFAULT_COMPRESSION; 
+        level = MZ_COMPRESS_LEVEL_DEFAULT;
     }else if (level > 10){
         level = 9;
     }
@@ -1081,325 +1067,320 @@ void Zip(sLONG_PTR *pResult, PackagePtr pParams)
     
     bool ignore_dot = !!(flags & 1L);
     
-#if VERSIONMAC    
+#if VERSIONMAC
     bool with_atttributes = !!(flags & 2L);
 #else
-    bool with_atttributes = false;    
+    bool with_atttributes = false;
 #endif
-
+    
     bool without_enclosing_folder = !!(flags & 4L);
     bool with_encyption = !!(flags & 8L);
-	
+    
+    bool with_bz2 = !!(flags & 16L);
+    bool with_lzma = !!(flags & 32L);
+    
 #if VERSIONWIN
-	IMultiLanguage2 *mlang = NULL;
-	CoCreateInstance(CLSID_CMultiLanguage, NULL, CLSCTX_INPROC_SERVER, IID_IMultiLanguage2, (void **)&mlang);
+    IMultiLanguage2 *mlang = NULL;
+    CoCreateInstance(CLSID_CMultiLanguage, NULL, CLSCTX_INPROC_SERVER, IID_IMultiLanguage2, (void **)&mlang);
 #endif
-	
+    
     //callback
     method_id_t methodId = PA_GetMethodID((PA_Unichar *)Param6.getUTF16StringPtr());
     bool abortedByCallbackMethod = false;
-	
-		int charset = Param7.getIntValue();
-	
-		get_subpaths(Param1, &relative_paths, &absolute_paths, ignore_dot, with_atttributes, without_enclosing_folder);
-
+    bool use_callback = Param6.getUTF16Length();
+    
+    int charset = Param7.getIntValue();
+    
+    get_subpaths(Param1, &relative_paths, &absolute_paths, ignore_dot, with_atttributes, without_enclosing_folder);
+    
     if(relative_paths.size()){
         
-        unsigned long CRC; 
+        void *writer = NULL;
+        int16_t compress_method = MZ_COMPRESS_METHOD_DEFLATE;
         
-        zipFile hZip = zipOpen64(output, APPEND_STATUS_CREATE);
+        if(with_bz2)
+        {
+            compress_method = MZ_COMPRESS_METHOD_BZIP2;
+        }
         
-        if(hZip){
-            
+        if(with_lzma)
+        {
+            compress_method = MZ_COMPRESS_METHOD_LZMA;
+        }
+        
+        unsigned int yield_counter = 0;
+        
+        mz_zip_writer_create(&writer);
+        
+        mz_zip_writer *h = (mz_zip_writer *)writer;
+        std::vector<uint8_t> buf(BUFFER_SIZE);
+        
+        double number_entry = relative_paths.size();
+        
+        if(with_password)
+        {
+            mz_zip_writer_set_password(writer, pass);
+        }
+        
+        mz_zip_writer_set_compress_method(writer, compress_method);
+        mz_zip_writer_set_compress_level(writer, level);
+
+        mz_zip_writer_set_aes(writer, with_encyption);
+        
+        int32_t err = mz_zip_writer_open_file(writer, output, 0, 0);
+        
+        if (err == MZ_OK)
+        {
             returnValue.setIntValue(1);
             
-            zip_fileinfo zi;
-            
-            time_t currentTime;
-            time(&currentTime);
-            
-            struct tm *tm;
-            tm=localtime(&currentTime);
-            
-            zi.tmz_date.tm_sec=tm->tm_sec;
-            zi.tmz_date.tm_min=tm->tm_min;
-            zi.tmz_date.tm_hour=tm->tm_hour;
-            zi.tmz_date.tm_mday=tm->tm_mday;
-            zi.tmz_date.tm_mon=tm->tm_mon;
-            zi.tmz_date.tm_year=tm->tm_year;            
-            zi.external_fa = 0;
-            zi.internal_fa = 0;
-            zi.dosDate = 0;
-               
-            double number_entry;
-               
-//            bool isCallbackActive = false;
-							bool isCallbackActive = Param6.getUTF16Length();
-					
-//            if(methodId){
-                    number_entry = relative_paths.size();
-//                    isCallbackActive = true; 
-//            }
-							
 #if VERSIONMAC
             NSFileManager *fm = [[NSFileManager alloc]init];
-#endif                       
-
-						std::vector<uint8_t> buf(BUFFER_SIZE);
-					
-            for (unsigned int i = 0; i < relative_paths.size(); ++i) {
-							
-							if((i % YIELD_FACTOR) == 0)
-							{
-								PA_YieldAbsolute();
-							}
-							
+#endif
+            for (unsigned int i = 0; i < relative_paths.size(); ++i)
+            {
                 relative_path_t relative_path = relative_paths.at(i);
                 absolute_path_t absolute_path = absolute_paths.at(i);
-								relative_path_t relative_path_utf8 = relative_path;
-							
-								if(charset > 0)
-								{
-#if VERSIONMAC
-									convertPathToCodepage(relative_path, charset);
-#else
-									convertPathToCodepage(relative_path, charset, mlang);
-#endif
-								}
-							
-                zi.external_fa = 0;
-#if VERSIONMAC  
-
-                    if(with_atttributes){
-                    
-                        NSDictionary *attributes = [fm attributesOfItemAtPath:[NSString stringWithUTF8String:(const char *)absolute_path.c_str()]error:nil];
-                        
-                        if(attributes){
-                             
-                            if([[attributes valueForKey:NSFileType]isEqualToString:NSFileTypeCharacterSpecial]){
-                                zi.external_fa = 0x20000000;
-                            }else
-                            if([[attributes valueForKey:NSFileType]isEqualToString:NSFileTypeDirectory]){
-                                zi.external_fa = 0x40000000;
-                            }else
-                            if([[attributes valueForKey:NSFileType]isEqualToString:NSFileTypeBlockSpecial]){
-                                zi.external_fa = 0x60000000;
-                            }else
-                            if([[attributes valueForKey:NSFileType]isEqualToString:NSFileTypeRegular]){
-                                zi.external_fa = 0x80000000;
-                            }else
-                            if(([[attributes valueForKey:NSFileType]isEqualToString:NSFileTypeSymbolicLink])){
-                                zi.external_fa = 0xA0000000;
-                            }else
-                            if([[attributes valueForKey:NSFileType]isEqualToString:NSFileTypeSocket]){
-                                zi.external_fa = 0xC0000000;
-                            }
-
-													zi.external_fa |= ([[attributes valueForKey:NSFilePosixPermissions]shortValue] << 16L);
-
-                        }//attributes 
-                        
-                    }//with_atttributes
-#endif                
+                relative_path_t relative_path_utf8 = relative_path;
+                relative_path_t absolute_path_utf8;
+                relative_path_t symbolic_path_utf8;
                 
-                //callback
-                if(isCallbackActive){
-									
-									
-									if(methodId)
-									{
-										PA_Variable	params[4];
-										params[0] = PA_CreateVariable(eVK_Unistring);
-										params[1] = PA_CreateVariable(eVK_Unistring);
-										params[2] = PA_CreateVariable(eVK_Real);
-										params[3] = PA_CreateVariable(eVK_Real);
-										
-										C_TEXT tempUstr;
-										tempUstr.setUTF8String((const uint8_t *)relative_path_utf8.c_str(), relative_path_utf8.length());
-										PA_Unistring methodParam1 = PA_CreateUnistring((PA_Unichar *)tempUstr.getUTF16StringPtr());
-										PA_SetStringVariable(&params[0], &methodParam1);
-										tempUstr.setUTF8String((const uint8_t *)absolute_path.c_str(), absolute_path.length());
-										PA_Unistring methodParam2 = PA_CreateUnistring((PA_Unichar *)tempUstr.getUTF16StringPtr());
-										PA_SetStringVariable(&params[1], &methodParam2);
-										
-										PA_SetRealVariable(&params[2], i+1);
-										PA_SetRealVariable(&params[3], number_entry);
-										
-										PA_Variable result = PA_ExecuteMethodByID(methodId, params, 4);
-										
-										if(PA_GetVariableKind(result) == eVK_Boolean)
-											abortedByCallbackMethod = PA_GetBooleanVariable(result);
-										
-										PA_ClearVariable(&params[0]);
-										PA_ClearVariable(&params[1]);
-										PA_ClearVariable(&params[2]);
-										PA_ClearVariable(&params[3]);
-										
-									}else
-									{
-										PA_Variable	params[6];
-										
-										params[2] = PA_CreateVariable(eVK_Unistring);
-										params[3] = PA_CreateVariable(eVK_Unistring);
-										params[4] = PA_CreateVariable(eVK_Real);
-										params[5] = PA_CreateVariable(eVK_Real);
-										
-										params[0] = PA_CreateVariable(eVK_Unistring);
-										PA_Unistring _methodName = PA_CreateUnistring((PA_Unichar *)Param6.getUTF16StringPtr());
-										PA_SetStringVariable(&params[0], &_methodName);
-										
-										params[1] = PA_CreateVariable(eVK_Boolean);
-										PA_SetBooleanVariable(&params[1], false);
-										
-										C_TEXT tempUstr;
-										tempUstr.setUTF8String((const uint8_t *)relative_path_utf8.c_str(), relative_path_utf8.length());
-										PA_Unistring methodParam1 = PA_CreateUnistring((PA_Unichar *)tempUstr.getUTF16StringPtr());
-										PA_SetStringVariable(&params[2], &methodParam1);
-										tempUstr.setUTF8String((const uint8_t *)absolute_path.c_str(), absolute_path.length());
-										PA_Unistring methodParam2 = PA_CreateUnistring((PA_Unichar *)tempUstr.getUTF16StringPtr());
-										PA_SetStringVariable(&params[3], &methodParam2);
-										
-										PA_SetRealVariable(&params[4], i+1);
-										PA_SetRealVariable(&params[5], number_entry);
-										
-										PA_ExecuteCommandByID(1007, params, 6);
-										
-										abortedByCallbackMethod = PA_GetBooleanVariable(params[1]);
-										
-										PA_ClearVariable(&params[0]);
-										PA_ClearVariable(&params[1]);
-										PA_ClearVariable(&params[3]);
-										PA_ClearVariable(&params[4]);
-										PA_ClearVariable(&params[5]);
-									}
-	
-                }
-							
-                if(abortedByCallbackMethod){
-                    i = number_entry;
-                }
-
-								if (with_encyption)
-								{
-									CRC = getFileCrc(absolute_path);
-									if(zipOpenNewFileInZip3_64(hZip,
-																						 relative_path.c_str(),
-																						 &zi,
-																						 NULL, 0,
-																						 NULL, 0,
-																						 NULL,
-																						 Z_DEFLATED,
-																						 level,
-																						 0, -MAX_WBITS, DEF_MEM_LEVEL, Z_DEFAULT_STRATEGY,
-																						 (password.length() ? (const char *)password.c_str() : NULL), CRC, 1) != 0){
-											returnValue.setIntValue(0);
-											break;
-									}
-								}else{
-									if(password.length())
-									{
-										CRC = getFileCrc(absolute_path);
-
-										if(zipOpenNewFileInZip3_64_noAES(hZip,
-																							 relative_path.c_str(),
-																							 &zi,
-																							 NULL, 0,
-																							 NULL, 0,
-																							 NULL,
-																							 Z_DEFLATED,
-																							 level,
-																							 0, -MAX_WBITS, DEF_MEM_LEVEL, Z_DEFAULT_STRATEGY,
-																							 (password.length() ? (const char *)password.c_str() : NULL), CRC, 1) != 0){
-												returnValue.setIntValue(0);
-												break;
-										}
-									}else{
-                    if(zipOpenNewFileInZip64_noAES(hZip,
-                                             relative_path.c_str(),
-                                             &zi,
-                                             NULL, 0,
-                                             NULL, 0,
-                                             NULL,
-                                             Z_DEFLATED,
-                                             level,
-                                             0) != 0){
-                        returnValue.setIntValue(0);
-                        break;
-                    }
-									}
-								}
-
                 bool isSymbolicLink = false;
+#if VERSIONMAC
+                absolute_path_utf8 = absolute_path;
+#else
+                wcs_to_utf8(absolute_path, absolute_path_utf8);
+#endif
+                const char *path = absolute_path_utf8.c_str();
+                
+                mz_zip_file zi;
+                memset(&zi, 0, sizeof(zi));
+
+                zi.version_madeby = MZ_VERSION_MADEBY;
                 
 #if VERSIONMAC
-                if(with_atttributes){
+                if(with_atttributes)
+                {
                     NSString *symbolicPath = (NSString *)CFStringCreateWithFileSystemRepresentation(kCFAllocatorDefault, absolute_path.c_str());
                     NSString *destinationPath = [fm destinationOfSymbolicLinkAtPath:symbolicPath error:nil];
                     if(destinationPath){
-                        std::string destinationPath_utf8([destinationPath UTF8String]);
-												if (with_encyption){
-													zipWriteInFileInZip(hZip, (char *)destinationPath_utf8.c_str(), destinationPath_utf8.size());
-												}else{
-													zipWriteInFileInZip_noAES(hZip, (char *)destinationPath_utf8.c_str(), destinationPath_utf8.size());
-												}
+                        symbolic_path_utf8 = relative_path_t([destinationPath UTF8String]);
                         [symbolicPath release];
                         isSymbolicLink = TRUE;
-                    }  
+                    }
                 }
-#endif                
+#endif
+                if(charset > 0)
+                {
+#if VERSIONMAC
+                    convertPathToCodepage(relative_path, charset);
+#else
+                    convertPathToCodepage(relative_path, charset, mlang);
+#endif
+                    zi.flag &= ~MZ_ZIP_FLAG_UTF8;
+                }else
+                {
+                    zi.flag |=  MZ_ZIP_FLAG_UTF8;
+                }
+                zi.filename = relative_path.c_str();
+                zi.uncompressed_size = mz_os_get_file_size(path);
+                
+                zi.compression_method = compress_method;
+                if(with_encyption)
+                {
+                    zi.aes_version = MZ_AES_VERSION;
+                }
+                mz_os_get_file_date(path,
+                                    &zi.modified_date,
+                                    &zi.accessed_date,
+                                    &zi.creation_date);
+                
+                mz_os_get_file_attribs(path, &zi.external_fa);
+#if VERSIONMAC
+                if(with_atttributes)
+                {
+                    NSDictionary *attributes = [fm attributesOfItemAtPath:
+                                                [NSString stringWithUTF8String:(const char *)absolute_path.c_str()]error:nil];
+                    if(attributes)
+                    {
+                        
+                        if([[attributes valueForKey:NSFileType]isEqualToString:NSFileTypeCharacterSpecial])
+                        {
+                            zi.external_fa = 0x20000000;
+                        }else
+                            if([[attributes valueForKey:NSFileType]isEqualToString:NSFileTypeDirectory])
+                            {
+                                zi.external_fa = 0x40000000;
+                            }else
+                                if([[attributes valueForKey:NSFileType]isEqualToString:NSFileTypeBlockSpecial])
+                                {
+                                    zi.external_fa = 0x60000000;
+                                }else
+                                    if([[attributes valueForKey:NSFileType]isEqualToString:NSFileTypeRegular])
+                                    {
+                                        zi.external_fa = 0x80000000;
+                                    }else
+                                        if(([[attributes valueForKey:NSFileType]isEqualToString:NSFileTypeSymbolicLink]))
+                                        {
+                                            zi.external_fa = 0xA0000000;
+                                        }else
+                                            if([[attributes valueForKey:NSFileType]isEqualToString:NSFileTypeSocket])
+                                            {
+                                                zi.external_fa = 0xC0000000;
+                                            }
+                        zi.external_fa |= ([[attributes valueForKey:NSFilePosixPermissions]shortValue] << 16L);
+                        
+                    }//attributes
 
-                if(!isSymbolicLink){
+                }//with_atttributes
+#endif
+                bool is_dir = (mz_zip_attrib_is_dir(zi.external_fa, zi.version_madeby) == MZ_OK);
                 
-                    std::ifstream ifs(absolute_path.c_str(), std::ios::in|std::ios::binary);
+                if(with_password)
+                {
+                    if(is_dir)
+                    {
+                        mz_zip_writer_set_password(writer, NULL);/* mac archiver does not process password for folder */
+                    }else
+                    {
+                        mz_zip_writer_set_password(writer, pass);
+                    }
+                }
                 
-                    if(ifs.is_open()){
-											unsigned int yield_counter = 0;
-                        while(ifs.good()){
-													yield_counter++;
-													if((yield_counter % YIELD_FACTOR) == 0)
-													{
-														PA_YieldAbsolute();
-													}
-                            ifs.read((char *)&buf[0], BUFFER_SIZE);
-														if (with_encyption){
-															zipWriteInFileInZip(hZip, (char *)&buf[0], ifs.gcount());
-														}else{
-															zipWriteInFileInZip_noAES(hZip, (char *)&buf[0], ifs.gcount());
-														}
+                if(mz_zip_writer_entry_open(writer, &zi) == MZ_OK)
+                {
+                    if (!is_dir)
+                    {
+                        if(with_password)
+                        {
+                            mz_zip_writer_set_password(writer, pass);
+                        }
+                        std::ifstream ifs(absolute_path.c_str(), std::ios::in|std::ios::binary);
+                        if(ifs.is_open())
+                        {
+                            if(isSymbolicLink)
+                            {
+                                yield_counter++;
+                                int32_t read = (int32_t)symbolic_path_utf8.length();
+                                int32_t written = mz_zip_entry_write(h->zip_handle, symbolic_path_utf8.c_str(), read);
+                                if (written != read)/* MZ_STREAM_ERROR */
+                                {
+                                    returnValue.setIntValue(0);
+                                    break;
+                                }
+                            }else
+                            {
+                                while(ifs.good())
+                                {
+                                    yield_counter++;
+                                    if((yield_counter % YIELD_FACTOR) == 0)
+                                    {
+                                        PA_YieldAbsolute();
+                                    }
+                                    ifs.read((char *)&buf[0], BUFFER_SIZE);
+                                    int32_t read = (int32_t)ifs.gcount();
+                                    int32_t written = mz_zip_entry_write(h->zip_handle, &buf[0], read);
+                                    if (written != read)/* MZ_STREAM_ERROR */
+                                    {
+                                        returnValue.setIntValue(0);
+                                        break;
+                                    }
+                                }
+                            }
+
+                            ifs.close();
+                        }
+                    }
+                    err = mz_zip_writer_entry_close(writer);
+                    
+                    if(use_callback)
+                    {
+                        if(methodId)
+                        {
+                            PA_Variable    params[4];
+                            params[0] = PA_CreateVariable(eVK_Unistring);
+                            params[1] = PA_CreateVariable(eVK_Unistring);
+                            params[2] = PA_CreateVariable(eVK_Real);
+                            params[3] = PA_CreateVariable(eVK_Real);
+                            
+                            C_TEXT tempUstr;
+                            tempUstr.setUTF8String((const uint8_t *)relative_path_utf8.c_str(), (uint32_t)relative_path_utf8.length());
+                            PA_Unistring methodParam1 = PA_CreateUnistring((PA_Unichar *)tempUstr.getUTF16StringPtr());
+                            PA_SetStringVariable(&params[0], &methodParam1);
+                            tempUstr.setUTF8String((const uint8_t *)absolute_path.c_str(), (uint32_t)absolute_path.length());
+                            PA_Unistring methodParam2 = PA_CreateUnistring((PA_Unichar *)tempUstr.getUTF16StringPtr());
+                            PA_SetStringVariable(&params[1], &methodParam2);
+                            
+                            PA_SetRealVariable(&params[2], i+1);
+                            PA_SetRealVariable(&params[3], number_entry);
+                            
+                            PA_Variable result = PA_ExecuteMethodByID(methodId, params, 4);
+                            
+                            if(PA_GetVariableKind(result) == eVK_Boolean)
+                                abortedByCallbackMethod = PA_GetBooleanVariable(result);
+                            
+                            PA_ClearVariable(&params[0]);
+                            PA_ClearVariable(&params[1]);
+                            PA_ClearVariable(&params[2]);
+                            PA_ClearVariable(&params[3]);
+                        }else
+                        {
+                            PA_Variable    params[6];
+                            params[2] = PA_CreateVariable(eVK_Unistring);
+                            params[3] = PA_CreateVariable(eVK_Unistring);
+                            params[4] = PA_CreateVariable(eVK_Real);
+                            params[5] = PA_CreateVariable(eVK_Real);
+                            
+                            params[0] = PA_CreateVariable(eVK_Unistring);
+                            PA_Unistring _methodName = PA_CreateUnistring((PA_Unichar *)Param6.getUTF16StringPtr());
+                            PA_SetStringVariable(&params[0], &_methodName);
+                            
+                            params[1] = PA_CreateVariable(eVK_Boolean);
+                            PA_SetBooleanVariable(&params[1], false);
+                            
+                            C_TEXT tempUstr;
+                            tempUstr.setUTF8String((const uint8_t *)relative_path_utf8.c_str(), (uint32_t)relative_path_utf8.length());
+                            PA_Unistring methodParam1 = PA_CreateUnistring((PA_Unichar *)tempUstr.getUTF16StringPtr());
+                            PA_SetStringVariable(&params[2], &methodParam1);
+                            tempUstr.setUTF8String((const uint8_t *)absolute_path.c_str(), (uint32_t)absolute_path.length());
+                            PA_Unistring methodParam2 = PA_CreateUnistring((PA_Unichar *)tempUstr.getUTF16StringPtr());
+                            PA_SetStringVariable(&params[3], &methodParam2);
+                            
+                            PA_SetRealVariable(&params[4], i+1);
+                            PA_SetRealVariable(&params[5], number_entry);
+                            PA_ExecuteCommandByID(1007, params, 6);
+                            
+                            abortedByCallbackMethod = PA_GetBooleanVariable(params[1]);
+                            
+                            PA_ClearVariable(&params[0]);
+                            PA_ClearVariable(&params[1]);
+                            PA_ClearVariable(&params[3]);
+                            PA_ClearVariable(&params[4]);
+                            PA_ClearVariable(&params[5]);
                         }
                         
-                        ifs.close();
-                        
+                        if(abortedByCallbackMethod)
+                        {
+                            i = number_entry;
+                        }
                     }
+                }/* mz_zip_writer_entry_open */
                 
-                }
-								if (with_encyption)
-								{
-									zipCloseFileInZip(hZip);
-								}else{
-									zipCloseFileInZip_noAES(hZip);
-								}
-            }
+            }/* for (unsigned int i = 0; i < relative_paths.size(); ++i) */
 #if VERSIONMAC
             [fm release];
-#endif             
-            zipClose(hZip, NULL);
-            
-        }        
-        
-    }
-	
-#if VERSIONWIN
-		if(mlang)
-		{
-			mlang->Release();
-		}
 #endif
-	
-    if(abortedByCallbackMethod){
-        returnValue.setIntValue(0);
-    }      
-        
+             mz_zip_writer_close(writer);
+        }/*  if (err == MZ_OK) */
+        mz_zip_writer_delete(&writer);
+    }
+    
+#if VERSIONWIN
+    if(mlang)
+    {
+        mlang->Release();
+    }
+#endif
+    
     returnValue.setReturn(pResult);
 }
 
@@ -1441,6 +1422,12 @@ void create_parent_folder(absolute_path_t& absolute_path){
     folderPath += fDir;
     create_folder(folderPath);
 #endif	
+}
+
+void copy_path(std::string& t, absolute_path_t& p){
+    C_TEXT u;
+    u.setUTF8String((const uint8_t *)t.c_str(), (uint32_t)t.length());
+    copy_path(u, p);
 }
 
 void copy_path(C_TEXT& t, absolute_path_t& p){
