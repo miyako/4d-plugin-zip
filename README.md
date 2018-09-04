@@ -37,6 +37,10 @@ this version replaces the original [madler/zlib/minizip](https://github.com/madl
 
 ![preemption xx](https://user-images.githubusercontent.com/1725068/41327179-4e839948-6efd-11e8-982b-a670d511e04f.png)
 
+### Releases
+
+[2.0](https://github.com/miyako/4d-plugin-zip/releases/tag/2.0)
+
 **Keep UNIX file attributes**
 
 You can archive apps, or any folder that contains symbolic links and files with RWX permissions, by passing ```ZIP_With_attributes (2)``` in options.
