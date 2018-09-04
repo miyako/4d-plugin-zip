@@ -45,12 +45,25 @@ this version replaces the original [madler/zlib/minizip](https://github.com/madl
 success:=Zip (src;dst;pass;level;options;callback;codepage)
 ```
 
-パラメーター|タイプ|説明
+Parameter|Type|Description
 ------------|------|----
 src|TEXT|
 dst|TEXT|
 pass|TEXT|
 level|LONGINT|
+options|LONGINT|
+callback|TEXT|
+codepage|LONGINT|
+
+```
+result:=Unzip (src;dst;pass;options;callback;codepage)
+```
+
+Parameter|Type|Description
+------------|------|----
+src|TEXT|
+dst|TEXT|
+pass|TEXT|
 options|LONGINT|
 callback|TEXT|
 codepage|LONGINT|
