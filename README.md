@@ -39,6 +39,8 @@ this version replaces the original [madler/zlib/minizip](https://github.com/madl
 
 ### Releases
 
+[2.1](https://github.com/miyako/4d-plugin-zip/releases/tag/2.1) added missing callback support for unzip
+
 [2.0](https://github.com/miyako/4d-plugin-zip/releases/tag/2.0)
 
 ```
