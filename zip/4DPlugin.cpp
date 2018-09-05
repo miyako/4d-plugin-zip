@@ -416,98 +416,178 @@ void Unzip(sLONG_PTR *pResult, PackagePtr pParams)
                             
                             if(use_callback)
                             {
-                                
+                                if(methodId)
+                                {
+                                    PA_Variable    params[6];
+                                    params[0] = PA_CreateVariable(eVK_Unistring);
+                                    params[1] = PA_CreateVariable(eVK_Unistring);
+                                    params[2] = PA_CreateVariable(eVK_Real);
+                                    params[3] = PA_CreateVariable(eVK_Real);
+                                    params[4] = PA_CreateVariable(eVK_Real);
+                                    params[5] = PA_CreateVariable(eVK_Real);
+                                    
+                                    C_TEXT tempUstr;
+                                    tempUstr.setUTF8String((const uint8_t *)relative_path.c_str(), (uint32_t)relative_path.length());
+                                    PA_Unistring methodParam1 = PA_CreateUnistring((PA_Unichar *)tempUstr.getUTF16StringPtr());
+                                    PA_SetStringVariable(&params[0], &methodParam1);
+                                    tempUstr.setUTF8String((const uint8_t *)absolute_path.c_str(), (uint32_t)absolute_path.length());
+                                    PA_Unistring methodParam2 = PA_CreateUnistring((PA_Unichar *)tempUstr.getUTF16StringPtr());
+                                    PA_SetStringVariable(&params[1], &methodParam2);
+                                    
+                                    PA_SetRealVariable(&params[2], num_of_file);
+                                    PA_SetRealVariable(&params[3], number_entry);
+                                    PA_SetRealVariable(&params[4], compressed_size);
+                                    PA_SetRealVariable(&params[5], uncompressed_size);
+                                    
+                                    PA_Variable result = PA_ExecuteMethodByID(methodId, params, 6);
+                                    
+                                    if(PA_GetVariableKind(result) == eVK_Boolean)
+                                        abortedByCallbackMethod = PA_GetBooleanVariable(result);
+                                    
+                                    PA_ClearVariable(&params[0]);
+                                    PA_ClearVariable(&params[1]);
+                                    PA_ClearVariable(&params[2]);
+                                    PA_ClearVariable(&params[3]);
+                                    PA_ClearVariable(&params[4]);
+                                    PA_ClearVariable(&params[5]);
+                                    
+                                }else
+                                {
+                                    PA_Variable    params[8];
+                                    params[2] = PA_CreateVariable(eVK_Unistring);
+                                    params[3] = PA_CreateVariable(eVK_Unistring);
+                                    params[4] = PA_CreateVariable(eVK_Real);
+                                    params[5] = PA_CreateVariable(eVK_Real);
+                                    params[6] = PA_CreateVariable(eVK_Real);
+                                    params[7] = PA_CreateVariable(eVK_Real);
+                                    
+                                    params[0] = PA_CreateVariable(eVK_Unistring);
+                                    PA_Unistring _methodName = PA_CreateUnistring((PA_Unichar *)Param5.getUTF16StringPtr());
+                                    PA_SetStringVariable(&params[0], &_methodName);
+                                    
+                                    params[1] = PA_CreateVariable(eVK_Boolean);
+                                    PA_SetBooleanVariable(&params[1], false);
+                                    
+                                    C_TEXT tempUstr;
+                                    tempUstr.setUTF8String((const uint8_t *)relative_path.c_str(), relative_path.length());
+                                    PA_Unistring methodParam1 = PA_CreateUnistring((PA_Unichar *)tempUstr.getUTF16StringPtr());
+                                    PA_SetStringVariable(&params[2], &methodParam1);
+                                    tempUstr.setUTF8String((const uint8_t *)absolute_path.c_str(), absolute_path.length());
+                                    PA_Unistring methodParam2 = PA_CreateUnistring((PA_Unichar *)tempUstr.getUTF16StringPtr());
+                                    PA_SetStringVariable(&params[3], &methodParam2);
+                                    
+                                    PA_SetRealVariable(&params[4], num_of_file);
+                                    PA_SetRealVariable(&params[5], number_entry);
+                                    PA_SetRealVariable(&params[6], compressed_size);
+                                    PA_SetRealVariable(&params[7], uncompressed_size);
+                                    
+                                    PA_ExecuteCommandByID(1007, params, 8);
+                                    
+                                    abortedByCallbackMethod = PA_GetBooleanVariable(params[1]);
+                                    
+                                    PA_ClearVariable(&params[0]);
+                                    PA_ClearVariable(&params[1]);
+                                    PA_ClearVariable(&params[2]);
+                                    PA_ClearVariable(&params[3]);
+                                    PA_ClearVariable(&params[4]);
+                                    PA_ClearVariable(&params[5]);
+                                    PA_ClearVariable(&params[6]);
+                                    PA_ClearVariable(&params[7]);
+                                }
                             }
                             
-                            if(relative_path.size() > 1)
+                            if(!abortedByCallbackMethod)
                             {
-                                if( !ignore_dot || ((relative_path.at(0) != '.') && relative_path.find("/.") == std::string::npos))
+                                if(relative_path.size() > 1)
                                 {
-                                    create_parent_folder(absolute_path);
-                                    
-                                    if(relative_path.at(relative_path.size() - 1) == folder_separator)
+                                    if( !ignore_dot || ((relative_path.at(0) != '.') && relative_path.find("/.") == std::string::npos))
                                     {
+                                        create_parent_folder(absolute_path);
                                         
-                                        create_folder(absolute_path);
-                                    }
-                                    
-                                     bool symbolicLinkCreated = false;
-                                    
-#if VERSIONMAC
-                                    if(with_atttributes){
-                                        
-                                        if(((zi->external_fa >> 16L) & 0xA000) == 0xA000)
+                                        if(relative_path.at(relative_path.size() - 1) == folder_separator)
                                         {
-   
-                                            std::vector<char> _buf(PATH_MAX);
-                                            int32_t read = mz_zip_entry_read(h->zip_handle, &_buf[0], PATH_MAX);
-                                            if(read > 0)
-                                            {
-                                                NSString *destinationPath =[[NSString alloc]initWithBytes:&_buf[0] length:len encoding:NSUTF8StringEncoding];
-                                                NSString *fullPath = [[NSString alloc]initWithUTF8String:absolute_path.c_str()];
-                                                symbolicLinkCreated = [fm createSymbolicLinkAtPath:fullPath withDestinationPath:destinationPath error:nil];
-                                                [fullPath release];
-                                                [destinationPath release];
-                                            }
                                             
+                                            create_folder(absolute_path);
                                         }
                                         
-                                    }
-#endif
-                                    if(!symbolicLinkCreated)
-                                    {
-                                        std::ofstream ofs(absolute_path.c_str(), std::ios::out|std::ios::binary);
+                                        bool symbolicLinkCreated = false;
                                         
-                                        if(ofs.is_open())
-                                        {
-                                            int32_t read;
+#if VERSIONMAC
+                                        if(with_atttributes){
                                             
-                                            err = mz_zip_entry_read_open(h->zip_handle, h->raw, pass);
-                                            
-                                            if (err == MZ_OK)
+                                            if(((zi->external_fa >> 16L) & 0xA000) == 0xA000)
                                             {
-                                                while ((read = mz_zip_entry_read(h->zip_handle, &buf[0], BUFFER_SIZE)) > 0)
+                                                
+                                                std::vector<char> _buf(PATH_MAX);
+                                                int32_t read = mz_zip_entry_read(h->zip_handle, &_buf[0], PATH_MAX);
+                                                if(read > 0)
                                                 {
-                                                    yield_counter++;
-                                                    
-                                                    ofs.write((const char *)&buf[0], read);
-                                                    
-                                                    if((yield_counter % YIELD_FACTOR) == 0)
-                                                    {
-                                                        PA_YieldAbsolute();
-                                                    }
+                                                    NSString *destinationPath =[[NSString alloc]initWithBytes:&_buf[0] length:len encoding:NSUTF8StringEncoding];
+                                                    NSString *fullPath = [[NSString alloc]initWithUTF8String:absolute_path.c_str()];
+                                                    symbolicLinkCreated = [fm createSymbolicLinkAtPath:fullPath withDestinationPath:destinationPath error:nil];
+                                                    [fullPath release];
+                                                    [destinationPath release];
                                                 }
                                                 
-                                                mz_zip_entry_close(h->zip_handle);
-                                                
                                             }
-                                            ofs.close();                                            
-                                        }
-                                    }
-#if VERSIONMAC
-                                    if(with_atttributes)
-                                    {
-                                        short permission = (zi->external_fa >> 16L) & 0x01FF;
-                                        
-                                        if(permission)
-                                        {
-                                            yield_counter++;
                                             
-                                            NSDictionary *itemAttributes = [NSDictionary
-                                                                            dictionaryWithObject:[NSNumber numberWithShort:permission]
-                                                                            forKey:NSFilePosixPermissions];
-                                            
-                                            NSString *fullPath = [[NSString alloc]initWithUTF8String:absolute_path.c_str()];
-                                            [fm setAttributes:itemAttributes ofItemAtPath:fullPath error:nil];
-                                            [fullPath release];
                                         }
-                                        
-                                    }
 #endif
+                                        if(!symbolicLinkCreated)
+                                        {
+                                            std::ofstream ofs(absolute_path.c_str(), std::ios::out|std::ios::binary);
+                                            
+                                            if(ofs.is_open())
+                                            {
+                                                int32_t read;
+                                                
+                                                err = mz_zip_entry_read_open(h->zip_handle, h->raw, pass);
+                                                
+                                                if (err == MZ_OK)
+                                                {
+                                                    while ((read = mz_zip_entry_read(h->zip_handle, &buf[0], BUFFER_SIZE)) > 0)
+                                                    {
+                                                        yield_counter++;
+                                                        
+                                                        ofs.write((const char *)&buf[0], read);
+                                                        
+                                                        if((yield_counter % YIELD_FACTOR) == 0)
+                                                        {
+                                                            PA_YieldAbsolute();
+                                                        }
+                                                    }
+                                                    
+                                                    mz_zip_entry_close(h->zip_handle);
+                                                    
+                                                }
+                                                ofs.close();
+                                            }
+                                        }
+#if VERSIONMAC
+                                        if(with_atttributes)
+                                        {
+                                            short permission = (zi->external_fa >> 16L) & 0x01FF;
+                                            
+                                            if(permission)
+                                            {
+                                                yield_counter++;
+                                                
+                                                NSDictionary *itemAttributes = [NSDictionary
+                                                                                dictionaryWithObject:[NSNumber numberWithShort:permission]
+                                                                                forKey:NSFilePosixPermissions];
+                                                
+                                                NSString *fullPath = [[NSString alloc]initWithUTF8String:absolute_path.c_str()];
+                                                [fm setAttributes:itemAttributes ofItemAtPath:fullPath error:nil];
+                                                [fullPath release];
+                                            }
+                                            
+                                        }
+#endif
+                                    }
+                                    
                                 }
-                                
                             }
-
+                            
                             err = mz_zip_reader_goto_next_entry(reader);
                             
                             if (err == MZ_OK)
