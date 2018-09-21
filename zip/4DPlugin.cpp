@@ -222,6 +222,8 @@ void Unzip(sLONG_PTR *pResult, PackagePtr pParams)
     
     if (err == MZ_OK)
     {
+        returnValue.setIntValue(1);
+        
 #if VERSIONMAC
         NSFileManager *fm = [[NSFileManager alloc]init];
         
