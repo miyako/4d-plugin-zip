@@ -720,35 +720,41 @@ void get_subpaths(wstring& path,
 
     if(h != INVALID_HANDLE_VALUE){
 			
-			unsigned int yield_counter = 0;
+		unsigned int yield_counter = 0;
 			
         do {
             
-					yield_counter++;
-					if((yield_counter % YIELD_FACTOR) == 0)
-					{
-						PA_YieldAbsolute();
-					}
-					
-					
+			yield_counter++;
+			if ((yield_counter % YIELD_FACTOR) == 0)
+			{
+				PA_YieldAbsolute();
+			}
+							
             wstring sub_path = find.cFileName;
             
+			/* ignore these meta */
             if((!wcscmp(sub_path.c_str(), L"..")) || (!wcscmp(sub_path.c_str(), L".")))
                 continue;		
             
-            if(find.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY){
-                
-                if(!absolutePathOffset){
-                    //top level is folder
+            if((find.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == FILE_ATTRIBUTE_DIRECTORY)
+			{    
+				/* is a folder */
+                if(!absolutePathOffset)
+				{
+                    /* is top level */
+					/* use this length to convert absolute path to relative */
                     absolutePathOffset = path.size() - 1;
 
 					wcs_to_utf8(sub_path + L"/", folder_name);	
 
-                    if(!without_enclosing_folder){
+					/* if flag specified, ignore (special option for top level) */
+                    if(!without_enclosing_folder)
+					{
                         absolute_paths->push_back(path);
                         relative_paths->push_back(folder_name);
                     }
 
+					/* recursive call with wildcard */
                     get_subpaths(path + L"\\*", 
                                  absolute_paths, 		
                                  relative_paths,       
@@ -758,29 +764,34 @@ void get_subpaths(wstring& path,
                                  absolutePathOffset);
                     
                 }else{
-                    //is sub-folder
-                    absolute_path = path + sub_path; 
-                    
-                    wstring base_path = path.substr(0, path.size() - 1).substr(absolutePathOffset + 2);
-                    base_path += sub_path;
+                    /* not top level */
+					/* trim the wildcard */
+					absolute_path = path.substr(0, path.size() - 1) + sub_path;
+
+                    wstring base_path = absolute_path.substr(absolutePathOffset + 2);
+                    /* base_path += sub_path;*/
+					/* because this is a folder path */
                     base_path += L"\\";
                     escape_path(base_path);
                     wcs_to_utf8(base_path, relative_path);
 					relative_path = folder_name + relative_path;
                     
-                    bool is_hidden = (GetFileAttributes(absolute_path.c_str())|FILE_ATTRIBUTE_HIDDEN)|(relative_path.at(0) == '.');
-                    
-                    if(!ignore_dot || (!is_hidden && relative_path.find("/.") == string::npos)){
-                     
+					bool is_hidden = (GetFileAttributes(absolute_path.c_str()) & FILE_ATTRIBUTE_HIDDEN) == FILE_ATTRIBUTE_HIDDEN;
+					is_hidden |= (relative_path.at(0) == '.');/* invisible folder for mac */
+					is_hidden |= (relative_path.find("/.") != string::npos);/* invisible folder in path */
+
+                    if(!(ignore_dot & is_hidden))
+					{
                         absolute_paths->push_back(absolute_path);
                         
-                        if(!without_enclosing_folder){
+                        if(!without_enclosing_folder)
+						{
                             relative_paths->push_back(relative_path);
                         }else{
                             relative_paths->push_back(relative_path.substr(folder_name.length()));
                         }
                         
-                        get_subpaths(path.substr(0, path.size() - 1)  + sub_path + L"\\*", 
+                        get_subpaths(absolute_path /* + sub_path */ + L"\\*",
                                      absolute_paths, 
                                      relative_paths, 
 									 folder_name,
@@ -793,9 +804,10 @@ void get_subpaths(wstring& path,
                 }
                 
             }else{
-                
-                if(!absolutePathOffset){
-                    // (over-ride ignore_dot, this is top level)
+                /* is file */
+                if(!absolutePathOffset)
+				{
+					/* top level */
                     absolute_path = path;// + sub_path;  
                     
                     escape_path(sub_path);
@@ -805,20 +817,26 @@ void get_subpaths(wstring& path,
                     relative_paths->push_back(relative_path);
                     
                 }else{
-                    
+					/* not top level */
 					wstring base_path = path.substr(0, path.size() - 1);
                     absolute_path = base_path + sub_path;  
                     
                     sub_path = base_path.substr(absolutePathOffset + 2) + sub_path;
+
                     escape_path(sub_path);
                     wcs_to_utf8(sub_path, relative_path);
 					relative_path = folder_name + relative_path;
 
-                    if(!ignore_dot || ((relative_path.at(0) != '.') && relative_path.find("/.") == string::npos)){
-                        
+					bool is_hidden = (GetFileAttributes(absolute_path.c_str()) & FILE_ATTRIBUTE_HIDDEN) == FILE_ATTRIBUTE_HIDDEN;
+					is_hidden |= (relative_path.at(0) == '.');/* invisible folder for mac */
+					is_hidden |= (relative_path.find("/.") != string::npos);/* invisible folder in path */
+
+                    if(!(ignore_dot & is_hidden))
+					{ 
                         absolute_paths->push_back(absolute_path);
                         
-                        if(!without_enclosing_folder){
+                        if(!without_enclosing_folder)
+						{
                             relative_paths->push_back(relative_path);
                         }else{
                             relative_paths->push_back(relative_path.substr(folder_name.length()));
