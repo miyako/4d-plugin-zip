@@ -155,3 +155,10 @@ void get_last_path_component(wstring &path, string &path_component);
  #define zipWriteInFileInZip_noAES zipWriteInFileInZip
  #define zipCloseFileInZip_noAES zipCloseFileInZip
  */
+
+#define YIELD_NO_CALLBACK 1
+#define LESS_CALLBACK 1
+
+#define USE_PA_EXECUTE_METHOD_BY_ID 1
+
+#include "preemptive_methods.h"

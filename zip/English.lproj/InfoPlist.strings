@@ -1,1 +1,5 @@
-/* Localized versions of Info.plist keys */CFBundleName = "Zip";CFBundleShortVersionString = "2.3";CFBundleGetInfoString = "Zip version 2.3, Copyright 2016 miyako.";
+/* Localized versions of Info.plist keys */
+
+CFBundleName = "Zip";
+CFBundleShortVersionString = "2.4";
+CFBundleGetInfoString = "Zip version 2.4, Copyright 2019 miyako.";
