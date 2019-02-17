@@ -18,6 +18,8 @@
 		D120937F13534DCC00A72CAA /* 4DPlugin.h in Headers */ = {isa = PBXBuildFile; fileRef = D120937E13534DCC00A72CAA /* 4DPlugin.h */; };
 		D124B26C1D9B40A600F7316C /* cpmap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D124B26A1D9B40A500F7316C /* cpmap.cpp */; settings = {COMPILER_FLAGS = "-w"; }; };
 		D124B26D1D9B40A600F7316C /* cpmap.h in Headers */ = {isa = PBXBuildFile; fileRef = D124B26B1D9B40A600F7316C /* cpmap.h */; };
+		D1297E5E2219001400C6C2C0 /* preemptive_methods.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D1297E5C2219001400C6C2C0 /* preemptive_methods.cpp */; };
+		D1297E5F2219001400C6C2C0 /* preemptive_methods.h in Headers */ = {isa = PBXBuildFile; fileRef = D1297E5D2219001400C6C2C0 /* preemptive_methods.h */; };
 		D130064F12F02D9700702C0E /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D130064E12F02D9700702C0E /* Cocoa.framework */; };
 		D13116A91A03ACB700DE1322 /* 4DPluginAPI.c in Sources */ = {isa = PBXBuildFile; fileRef = D13116A81A03ACB700DE1322 /* 4DPluginAPI.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		D13116AC1A03B10800DE1322 /* C_LONGINT.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D13116AA1A03B10800DE1322 /* C_LONGINT.cpp */; settings = {COMPILER_FLAGS = "-w"; }; };
@@ -58,8 +60,6 @@
 		D175FE5D213E8AA6006A62C2 /* libminizip.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D175FE5C213E8AA6006A62C2 /* libminizip.a */; };
 		D175FE5F213E8ABB006A62C2 /* libbz2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = D175FE5E213E8ABB006A62C2 /* libbz2.dylib */; };
 		D1A3EF561F05F5810011888C /* libz.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D1A3EF551F05F5810011888C /* libz.a */; };
-		D1AD1C1222199D8300E5FBDC /* preemptive_methods.h in Headers */ = {isa = PBXBuildFile; fileRef = D1AD1C1022199D8300E5FBDC /* preemptive_methods.h */; };
-		D1AD1C1322199D8300E5FBDC /* preemptive_methods.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D1AD1C1122199D8300E5FBDC /* preemptive_methods.cpp */; };
 		D1D2892A213E324C00EF2AE2 /* libjsoncpp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D1D28929213E324C00EF2AE2 /* libjsoncpp.a */; };
 		D1F77AC81C8E10D000D3FA7A /* zconf.h in Headers */ = {isa = PBXBuildFile; fileRef = D1F77AC61C8E10D000D3FA7A /* zconf.h */; };
 		D1F77AC91C8E10D000D3FA7A /* zlib.h in Headers */ = {isa = PBXBuildFile; fileRef = D1F77AC71C8E10D000D3FA7A /* zlib.h */; };
@@ -92,6 +92,8 @@
 		D120937E13534DCC00A72CAA /* 4DPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = 4DPlugin.h; sourceTree = "<group>"; };
 		D124B26A1D9B40A500F7316C /* cpmap.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = cpmap.cpp; path = codepage/cpmap.cpp; sourceTree = "<group>"; };
 		D124B26B1D9B40A600F7316C /* cpmap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = cpmap.h; path = codepage/cpmap.h; sourceTree = "<group>"; };
+		D1297E5C2219001400C6C2C0 /* preemptive_methods.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = preemptive_methods.cpp; path = preemptive/preemptive_methods.cpp; sourceTree = "<group>"; };
+		D1297E5D2219001400C6C2C0 /* preemptive_methods.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = preemptive_methods.h; path = preemptive/preemptive_methods.h; sourceTree = "<group>"; };
 		D130064E12F02D9700702C0E /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		D13116A81A03ACB700DE1322 /* 4DPluginAPI.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = 4DPluginAPI.c; sourceTree = "<group>"; };
 		D13116AA1A03B10800DE1322 /* C_LONGINT.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = C_LONGINT.cpp; path = Classes/C_LONGINT.cpp; sourceTree = "<group>"; };
@@ -134,8 +136,6 @@
 		D175FE5C213E8AA6006A62C2 /* libminizip.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libminizip.a; path = a/libminizip.a; sourceTree = "<group>"; };
 		D175FE5E213E8ABB006A62C2 /* libbz2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libbz2.dylib; path = usr/lib/libbz2.dylib; sourceTree = SDKROOT; };
 		D1A3EF551F05F5810011888C /* libz.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libz.a; sourceTree = "<group>"; };
-		D1AD1C1022199D8300E5FBDC /* preemptive_methods.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = preemptive_methods.h; sourceTree = "<group>"; };
-		D1AD1C1122199D8300E5FBDC /* preemptive_methods.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = preemptive_methods.cpp; sourceTree = "<group>"; };
 		D1D28929213E324C00EF2AE2 /* libjsoncpp.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libjsoncpp.a; path = a/libjsoncpp.a; sourceTree = "<group>"; };
 		D1F77AC61C8E10D000D3FA7A /* zconf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = zconf.h; path = include/zconf.h; sourceTree = SOURCE_ROOT; };
 		D1F77AC71C8E10D000D3FA7A /* zlib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = zlib.h; path = include/zlib.h; sourceTree = SOURCE_ROOT; };
@@ -162,7 +162,8 @@
 		089C166AFE841209C02AAC07 /* Zip */ = {
 			isa = PBXGroup;
 			children = (
-				D1AD1C0F22199D8300E5FBDC /* preemptive */,
+				D1297E5C2219001400C6C2C0 /* preemptive_methods.cpp */,
+				D1297E5D2219001400C6C2C0 /* preemptive_methods.h */,
 				D175FE5A213E6DEE006A62C2 /* mz */,
 				D1A3EF541F05F5810011888C /* a */,
 				D108BD7A1A03D1E6001F1B90 /* Manifest */,
@@ -303,15 +304,6 @@
 			path = a;
 			sourceTree = "<group>";
 		};
-		D1AD1C0F22199D8300E5FBDC /* preemptive */ = {
-			isa = PBXGroup;
-			children = (
-				D1AD1C1022199D8300E5FBDC /* preemptive_methods.h */,
-				D1AD1C1122199D8300E5FBDC /* preemptive_methods.cpp */,
-			);
-			path = preemptive;
-			sourceTree = "<group>";
-		};
 		D1D28928213E324C00EF2AE2 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -336,7 +328,7 @@
 				18B684F706944F2000CC6A1E /* 4DPluginAPI.h in Headers */,
 				D13116B91A03B3C300DE1322 /* C_DATE.h in Headers */,
 				D13116BD1A03B3C300DE1322 /* C_TIME.h in Headers */,
-				D1AD1C1222199D8300E5FBDC /* preemptive_methods.h in Headers */,
+				D1297E5F2219001400C6C2C0 /* preemptive_methods.h in Headers */,
 				18B684F806944F2000CC6A1E /* EntryPoints.h in Headers */,
 				18B684F906944F2000CC6A1E /* Flags.h in Headers */,
 				D13116E31A03BC1100DE1322 /* ARRAY_BOOLEAN.h in Headers */,
@@ -446,7 +438,7 @@
 				D13116AC1A03B10800DE1322 /* C_LONGINT.cpp in Sources */,
 				D13116E81A03BC1100DE1322 /* ARRAY_REAL.cpp in Sources */,
 				D124B26C1D9B40A600F7316C /* cpmap.cpp in Sources */,
-				D1AD1C1322199D8300E5FBDC /* preemptive_methods.cpp in Sources */,
+				D1297E5E2219001400C6C2C0 /* preemptive_methods.cpp in Sources */,
 				18B684FF06944F8800CC6A1E /* 4DPlugin.cpp in Sources */,
 				D13116D81A03BBFC00DE1322 /* ARRAY_TEXT.cpp in Sources */,
 				D13116B81A03B3C300DE1322 /* C_DATE.cpp in Sources */,
@@ -518,7 +510,7 @@
 				PRODUCT_NAME = Zip;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SECTORDER_FLAGS = "";
-				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/ include include/mz preemptive";
+				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/ include include/mz preempitve";
 				WARNING_CFLAGS = (
 					"-Wmost",
 					"-Wno-four-char-constants",
@@ -564,7 +556,7 @@
 				PRODUCT_NAME = Zip;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SECTORDER_FLAGS = "";
-				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/ include include/mz preemptive";
+				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/ include include/mz preempitve";
 				WARNING_CFLAGS = (
 					"-Wmost",
 					"-Wno-four-char-constants",
@@ -608,7 +600,7 @@
 				PRODUCT_NAME = Zip;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SECTORDER_FLAGS = "";
-				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/ include include/mz preemptive";
+				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/ include include/mz preempitve";
 				WARNING_CFLAGS = (
 					"-Wmost",
 					"-Wno-four-char-constants",
@@ -621,7 +613,7 @@
 		42D60B440A9DDBC8002ABB42 /* Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				ARCHS = "$(ARCHS_STANDARD)";
 				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
@@ -663,7 +655,7 @@
 		42D60B450A9DDBC8002ABB42 /* Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				ARCHS = "$(ARCHS_STANDARD)";
 				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
@@ -705,7 +697,7 @@
 		42D60B460A9DDBC8002ABB42 /* Default */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				ARCHS = "$(ARCHS_STANDARD)";
 				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
