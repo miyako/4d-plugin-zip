@@ -100,7 +100,7 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			T9G3EMHdt68kYXqDg4bht2HyK50=
+			HSlkLftnTjDKFs1N7vfzZG9IRbg=
 			</data>
 			<key>optional</key>
 			<true/>
@@ -388,11 +388,11 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			T9G3EMHdt68kYXqDg4bht2HyK50=
+			HSlkLftnTjDKFs1N7vfzZG9IRbg=
 			</data>
 			<key>hash2</key>
 			<data>
-			hxIyiJlyw25yGakgl3HLo3vc+cKp3noOFxAReX8noCs=
+			Uk4Isx46LcLhtu6J2PjT7PK93KDnczlzDUOhDzZW0zg=
 			</data>
 			<key>optional</key>
 			<true/>
@@ -434,32 +434,32 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			VVpFCYvLtjk0G5CvHlUeZ9hJjEo=
+			kEmD0k660Tmgth0ttXICmTKC56Q=
 			</data>
 			<key>hash2</key>
 			<data>
-			ARmahJB4+mXSPmeR5FHrL0USTXfr6HB2Ib+C0Yl+ETc=
+			MrKxTw84FiW0D1KoV60UlteWI1conEnaxohbeRN4Xe0=
 			</data>
 		</dict>
 		<key>Windows64/Zip.4DX</key>
 		<dict>
 			<key>hash</key>
 			<data>
-			BWDdkEBdCiKqJHzRsjfEDLrOiLY=
+			VZVU4JBgp7WJT91tzOg36FB/DBY=
 			</data>
 			<key>hash2</key>
 			<data>
-			mydpkyhKkqb6v9oG7GVHgbfG58PXutRxNPnDrQgbJa8=
+			UtFmtJFe0meiX9uAqNHGSGykgcxqqkNGk/5lBa523L4=
 			</data>
 		</dict>
 		<key>manifest.json</key>
 		<dict>
 			<key>cdhash</key>
 			<data>
-			/gzEXKlB8Kvz/XPQvzCizoZ+PJI=
+			NNVMiR8IUhjYqpVb3A0Qz7UNN0Y=
 			</data>
 			<key>requirement</key>
-			<string>identifier manifest and anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = Y69CWUC25B</string>
+			<string>identifier manifest and anchor apple generic and certificate leaf[subject.CN] = "Mac Developer: keisuke miyako (4W9UT59D3B)" and certificate 1[field.1.2.840.113635.100.6.2.1] /* exists */</string>
 		</dict>
 	</dict>
 	<key>rules</key>
