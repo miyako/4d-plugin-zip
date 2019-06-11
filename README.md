@@ -39,7 +39,7 @@ this version replaces the original [madler/zlib/minizip](https://github.com/madl
 
 ### Releases
 
-[2.4](https://github.com/miyako/4d-plugin-zip/releases/tag/2.4-carbon)
+[2.5](https://github.com/miyako/4d-plugin-zip/releases/tag/2.5-carbon)
 
 [2.3](https://github.com/miyako/4d-plugin-zip/releases/tag/2.3) review path parse code for windows
 
