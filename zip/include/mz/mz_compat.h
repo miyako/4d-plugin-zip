@@ -1,11 +1,11 @@
 /* mz_compat.h -- Backwards compatible interface for older versions
-   Version 2.5.2, August 27, 2018
+   Version 2.8.9, July 4, 2019
    part of the MiniZip project
 
-   Copyright (C) 2010-2018 Nathan Moinvaziri
+   Copyright (C) 2010-2019 Nathan Moinvaziri
      https://github.com/nmoinvaz/minizip
    Copyright (C) 1998-2010 Gilles Vollant
-     http://www.winimage.com/zLibDll/minizip.html
+     https://www.winimage.com/zLibDll/minizip.html
 
    This program is distributed under the terms of the same license as zlib.
    See the accompanying LICENSE file for the full text of the license.
@@ -14,13 +14,15 @@
 #ifndef MZ_COMPAT_H
 #define MZ_COMPAT_H
 
-#include <stdint.h>
+#include "mz.h"
 
 #ifdef __cplusplus
-"C" {
+extern "C" {
 #endif
 
-#ifdef HAVE_ZLIB
+/***************************************************************************/
+
+#if defined(HAVE_ZLIB) && defined(MAX_MEM_LEVEL)
 #ifndef DEF_MEM_LEVEL
 #  if MAX_MEM_LEVEL >= 8
 #    define DEF_MEM_LEVEL 8
@@ -28,38 +30,16 @@
 #    define DEF_MEM_LEVEL  MAX_MEM_LEVEL
 #  endif
 #endif
-#else
+#endif
+#ifndef MAX_WBITS
 #define MAX_WBITS     (15)
+#endif
+#ifndef DEF_MEM_LEVEL
 #define DEF_MEM_LEVEL (8)
 #endif
 
 #ifndef ZEXPORT
-#  define ZEXPORT
-#endif
-
-/***************************************************************************/
-
-#if defined(USE_FILE32API)
-#  define fopen64 fopen
-#  define ftello64 ftell
-#  define fseeko64 fseek
-#else
-#  if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__DragonFly__) || \
-      defined(__OpenBSD__) || defined(__APPLE__) || defined(__ANDROID__)
-#    define fopen64 fopen
-#    define ftello64 ftello
-#    define fseeko64 fseeko
-#  endif
-#  ifdef _MSC_VER
-#    define fopen64 fopen
-#    if (_MSC_VER >= 1400) && (!(defined(NO_MSCVER_FILE64_FUNC)))
-#      define ftello64 _ftelli64
-#      define fseeko64 _fseeki64
-#    else /* old MSC */
-#      define ftello64 ftell
-#      define fseeko64 fseek
-#    endif
-#  endif
+#  define ZEXPORT MZ_EXPORT
 #endif
 
 /***************************************************************************/
@@ -86,12 +66,18 @@ typedef uint64_t ZPOS64_T;
 
 /***************************************************************************/
 
+#if MZ_COMPAT_VERSION <= 110
+#define mz_dos_date dosDate
+#else
+#define mz_dos_date dos_date
+#endif
+
 typedef struct
 {
-    uint32_t    dosDate;
+    uint32_t    mz_dos_date;
     struct tm   tmz_date;
-    uint16_t    internal_fa;        // internal file attributes        2 bytes
-    uint32_t    external_fa;        // external file attributes        4 bytes
+    uint16_t    internal_fa;        /* internal file attributes        2 bytes */
+    uint32_t    external_fa;        /* external file attributes        4 bytes */
 } zip_fileinfo;
 
 /***************************************************************************/
@@ -110,54 +96,70 @@ typedef struct
 #define APPEND_STATUS_ADDINZIP          (2)
 
 /***************************************************************************/
+/* Writing a zip file  */
 
-zipFile ZEXPORT zipOpen(const char *path, int append);
-zipFile ZEXPORT zipOpen64(const void *path, int append);
-zipFile ZEXPORT zipOpen2(const char *path, int append, const char **globalcomment,
+ZEXPORT zipFile zipOpen(const char *path, int append);
+ZEXPORT zipFile zipOpen64(const void *path, int append);
+ZEXPORT zipFile zipOpen2(const char *path, int append, const char **globalcomment,
     zlib_filefunc_def *pzlib_filefunc_def);
-zipFile ZEXPORT zipOpen2_64(const void *path, int append, const char **globalcomment,
+ZEXPORT zipFile zipOpen2_64(const void *path, int append, const char **globalcomment,
     zlib_filefunc64_def *pzlib_filefunc_def);
-zipFile ZEXPORT zipOpen_MZ(void *stream, int append, const char **globalcomment);
+        zipFile zipOpen_MZ(void *stream, int append, const char **globalcomment);
 
-int ZEXPORT zipOpenNewFileInZip3(zipFile file, const char *filename, const zip_fileinfo *zipfi,
+ZEXPORT int     zipOpenNewFileInZip(zipFile file, const char *filename, const zip_fileinfo *zipfi,
+    const void *extrafield_local, uint16_t size_extrafield_local, const void *extrafield_global,
+    uint16_t size_extrafield_global, const char *comment, uint16_t compression_method, int level);
+ZEXPORT int     zipOpenNewFileInZip_64(zipFile file, const char *filename, const zip_fileinfo *zipfi,
+    const void *extrafield_local, uint16_t size_extrafield_local, const void *extrafield_global,
+    uint16_t size_extrafield_global, const char *comment, uint16_t compression_method, int level,
+    int zip64);
+ZEXPORT int     zipOpenNewFileInZip2(zipFile file, const char *filename, const zip_fileinfo *zipfi,
+    const void *extrafield_local, uint16_t size_extrafield_local, const void *extrafield_global,
+    uint16_t size_extrafield_global, const char *comment, uint16_t compression_method, int level,
+    int raw);
+ZEXPORT int     zipOpenNewFileInZip2_64(zipFile file, const char *filename, const zip_fileinfo *zipfi,
+    const void *extrafield_local, uint16_t size_extrafield_local, const void *extrafield_global,
+    uint16_t size_extrafield_global, const char *comment, uint16_t compression_method, int level,
+    int raw, int zip64);
+ZEXPORT int     zipOpenNewFileInZip3(zipFile file, const char *filename, const zip_fileinfo *zipfi,
     const void *extrafield_local, uint16_t size_extrafield_local, const void *extrafield_global,
     uint16_t size_extrafield_global, const char *comment, uint16_t compression_method, int level,
     int raw, int windowBits, int memLevel, int strategy, const char *password,
     uint32_t crc_for_crypting);
-int ZEXPORT zipOpenNewFileInZip3_64(zipFile file, const char *filename, const zip_fileinfo *zipfi,
+ZEXPORT int     zipOpenNewFileInZip3_64(zipFile file, const char *filename, const zip_fileinfo *zipfi,
     const void *extrafield_local, uint16_t size_extrafield_local, const void *extrafield_global,
     uint16_t size_extrafield_global, const char *comment, uint16_t compression_method, int level,
     int raw, int windowBits, int memLevel, int strategy, const char *password,
     uint32_t crc_for_crypting, int zip64);
-int ZEXPORT zipOpenNewFileInZip4(zipFile file, const char *filename, const zip_fileinfo *zipfi,
+ZEXPORT int     zipOpenNewFileInZip4(zipFile file, const char *filename, const zip_fileinfo *zipfi,
     const void *extrafield_local, uint16_t size_extrafield_local, const void *extrafield_global,
     uint16_t size_extrafield_global, const char *comment, uint16_t compression_method, int level,
     int raw, int windowBits, int memLevel, int strategy, const char *password,
     uint32_t crc_for_crypting, uint16_t version_madeby, uint16_t flag_base);
-int ZEXPORT zipOpenNewFileInZip4_64(zipFile file, const char *filename, const zip_fileinfo *zipfi,
+ZEXPORT int     zipOpenNewFileInZip4_64(zipFile file, const char *filename, const zip_fileinfo *zipfi,
     const void *extrafield_local, uint16_t size_extrafield_local, const void *extrafield_global,
     uint16_t size_extrafield_global, const char *comment, uint16_t compression_method, int level,
     int raw, int windowBits, int memLevel, int strategy, const char *password,
     uint32_t crc_for_crypting, uint16_t version_madeby, uint16_t flag_base, int zip64);
-int ZEXPORT zipOpenNewFileInZip5(zipFile file, const char *filename, const zip_fileinfo *zipfi,
+ZEXPORT int     zipOpenNewFileInZip5(zipFile file, const char *filename, const zip_fileinfo *zipfi,
     const void *extrafield_local, uint16_t size_extrafield_local, const void *extrafield_global,
     uint16_t size_extrafield_global, const char *comment, uint16_t compression_method, int level,
     int raw, int windowBits, int memLevel, int strategy, const char *password,
     uint32_t crc_for_crypting, uint16_t version_madeby, uint16_t flag_base, int zip64);
 
-int ZEXPORT zipWriteInFileInZip(zipFile file, const void *buf, uint32_t len);
+ZEXPORT int     zipWriteInFileInZip(zipFile file, const void *buf, uint32_t len);
 
-int ZEXPORT zipCloseFileInZipRaw(zipFile file, uint32_t uncompressed_size, uint32_t crc32);
-int ZEXPORT zipCloseFileInZipRaw64(zipFile file, uint64_t uncompressed_size, uint32_t crc32);
-int ZEXPORT zipCloseFileInZip(zipFile file);
-int ZEXPORT zipCloseFileInZip64(zipFile file);
+ZEXPORT int     zipCloseFileInZipRaw(zipFile file, uint32_t uncompressed_size, uint32_t crc32);
+ZEXPORT int     zipCloseFileInZipRaw64(zipFile file, int64_t uncompressed_size, uint32_t crc32);
+ZEXPORT int     zipCloseFileInZip(zipFile file);
+ZEXPORT int     zipCloseFileInZip64(zipFile file);
 
-int ZEXPORT zipClose(zipFile file, const char *global_comment);
-int ZEXPORT zipClose_64(zipFile file, const char *global_comment);
-int ZEXPORT zipClose2_64(zipFile file, const char *global_comment, uint16_t version_madeby);
-int ZEXPORT zipClose_MZ(zipFile file, const char *global_comment);
-int ZEXPORT zipClose2_MZ(zipFile file, const char *global_comment, uint16_t version_madeby);
-void* ZEXPORT zipGetStream(zipFile file);
+ZEXPORT int     zipClose(zipFile file, const char *global_comment);
+ZEXPORT int     zipClose_64(zipFile file, const char *global_comment);
+ZEXPORT int     zipClose2_64(zipFile file, const char *global_comment, uint16_t version_madeby);
+        int     zipClose_MZ(zipFile file, const char *global_comment);
+        int     zipClose2_MZ(zipFile file, const char *global_comment, uint16_t version_madeby);
+ZEXPORT void*   zipGetStream(zipFile file);
 
 /***************************************************************************/
 
@@ -186,36 +188,36 @@ typedef void *unzFile;
 
 typedef struct unz_global_info64_s
 {
-    uint64_t number_entry;          // total number of entries in the central dir on this disk
-    uint32_t number_disk_with_CD;   // number the the disk with central dir, used for spanning ZIP
-    uint16_t size_comment;          // size of the global comment of the zipfile
+    uint64_t number_entry;          /* total number of entries in the central dir on this disk */
+    uint32_t number_disk_with_CD;   /* number the the disk with central dir, used for spanning ZIP */
+    uint16_t size_comment;          /* size of the global comment of the zipfile */
 } unz_global_info64;
 
 typedef struct unz_global_info_s
 {
-    uint32_t number_entry;          // total number of entries in the central dir on this disk
-    uint32_t number_disk_with_CD;   // number the the disk with central dir, used for spanning ZIP
-    uint16_t size_comment;          // size of the global comment of the zipfile
+    uint32_t number_entry;          /* total number of entries in the central dir on this disk */
+    uint32_t number_disk_with_CD;   /* number the the disk with central dir, used for spanning ZIP */
+    uint16_t size_comment;          /* size of the global comment of the zipfile */
 } unz_global_info;
 
 typedef struct unz_file_info64_s
 {
-    uint16_t version;               // version made by                 2 bytes
-    uint16_t version_needed;        // version needed to extract       2 bytes
-    uint16_t flag;                  // general purpose bit flag        2 bytes
-    uint16_t compression_method;    // compression method              2 bytes
-    uint32_t dosDate;               // last mod file date in Dos fmt   4 bytes
+    uint16_t version;               /* version made by                 2 bytes */
+    uint16_t version_needed;        /* version needed to extract       2 bytes */
+    uint16_t flag;                  /* general purpose bit flag        2 bytes */
+    uint16_t compression_method;    /* compression method              2 bytes */
+    uint32_t mz_dos_date;           /* last mod file date in Dos fmt   4 bytes */
     struct tm tmu_date;
-    uint32_t crc;                   // crc-32                          4 bytes
-    uint64_t compressed_size;       // compressed size                 8 bytes
-    uint64_t uncompressed_size;     // uncompressed size               8 bytes
-    uint16_t size_filename;         // filename length                 2 bytes
-    uint16_t size_file_extra;       // extra field length              2 bytes
-    uint16_t size_file_comment;     // file comment length             2 bytes
+    uint32_t crc;                   /* crc-32                          4 bytes */
+    uint64_t compressed_size;       /* compressed size                 8 bytes */
+    uint64_t uncompressed_size;     /* uncompressed size               8 bytes */
+    uint16_t size_filename;         /* filename length                 2 bytes */
+    uint16_t size_file_extra;       /* extra field length              2 bytes */
+    uint16_t size_file_comment;     /* file comment length             2 bytes */
 
-    uint32_t disk_num_start;        // disk number start               4 bytes
-    uint16_t internal_fa;           // internal file attributes        2 bytes
-    uint32_t external_fa;           // external file attributes        4 bytes
+    uint32_t disk_num_start;        /* disk number start               4 bytes */
+    uint16_t internal_fa;           /* internal file attributes        2 bytes */
+    uint32_t external_fa;           /* external file attributes        4 bytes */
 
     uint64_t disk_offset;
 
@@ -224,22 +226,22 @@ typedef struct unz_file_info64_s
 
 typedef struct unz_file_info_s
 {
-    uint16_t version;               // version made by                 2 bytes
-    uint16_t version_needed;        // version needed to extract       2 bytes
-    uint16_t flag;                  // general purpose bit flag        2 bytes
-    uint16_t compression_method;    // compression method              2 bytes
-    uint32_t dosDate;               // last mod file date in Dos fmt   4 bytes
+    uint16_t version;               /* version made by                 2 bytes */
+    uint16_t version_needed;        /* version needed to extract       2 bytes */
+    uint16_t flag;                  /* general purpose bit flag        2 bytes */
+    uint16_t compression_method;    /* compression method              2 bytes */
+    uint32_t mz_dos_date;           /* last mod file date in Dos fmt   4 bytes */
     struct tm tmu_date;
-    uint32_t crc;                   // crc-32                          4 bytes
-    uint32_t compressed_size;       // compressed size                 4 bytes
-    uint32_t uncompressed_size;     // uncompressed size               4 bytes
-    uint16_t size_filename;         // filename length                 2 bytes
-    uint16_t size_file_extra;       // extra field length              2 bytes
-    uint16_t size_file_comment;     // file comment length             2 bytes
+    uint32_t crc;                   /* crc-32                          4 bytes */
+    uint32_t compressed_size;       /* compressed size                 4 bytes */
+    uint32_t uncompressed_size;     /* uncompressed size               4 bytes */
+    uint16_t size_filename;         /* filename length                 2 bytes */
+    uint16_t size_file_extra;       /* extra field length              2 bytes */
+    uint16_t size_file_comment;     /* file comment length             2 bytes */
 
-    uint16_t disk_num_start;        // disk number start               2 bytes
-    uint16_t internal_fa;           // internal file attributes        2 bytes
-    uint32_t external_fa;           // external file attributes        4 bytes
+    uint16_t disk_num_start;        /* disk number start               2 bytes */
+    uint16_t internal_fa;           /* internal file attributes        2 bytes */
+    uint32_t external_fa;           /* external file attributes        4 bytes */
 
     uint64_t disk_offset;
 } unz_file_info;
@@ -249,65 +251,88 @@ typedef struct unz_file_info_s
 typedef int (*unzFileNameComparer)(unzFile file, const char *filename1, const char *filename2);
 typedef int (*unzIteratorFunction)(unzFile file);
 typedef int (*unzIteratorFunction2)(unzFile file, unz_file_info64 *pfile_info, char *filename,
-    uint16_t filename_size, void *extrafield, uint16_t extrafield_size, char *comment, uint16_t comment_size);
+    uint16_t filename_size, void *extrafield, uint16_t extrafield_size, char *comment,
+    uint16_t comment_size);
+
+/***************************************************************************/
+/* Reading a zip file */
+
+ZEXPORT unzFile unzOpen(const char *path);
+ZEXPORT unzFile unzOpen64(const void *path);
+ZEXPORT unzFile unzOpen2(const char *path, zlib_filefunc_def *pzlib_filefunc_def);
+ZEXPORT unzFile unzOpen2_64(const void *path, zlib_filefunc64_def *pzlib_filefunc_def);
+        unzFile unzOpen_MZ(void *stream);
+
+ZEXPORT int     unzClose(unzFile file);
+        int     unzClose_MZ(unzFile file);
+
+ZEXPORT int     unzGetGlobalInfo(unzFile file, unz_global_info* pglobal_info32);
+ZEXPORT int     unzGetGlobalInfo64(unzFile file, unz_global_info64 *pglobal_info);
+ZEXPORT int     unzGetGlobalComment(unzFile file, char *comment, uint16_t comment_size);
+
+ZEXPORT int     unzOpenCurrentFile(unzFile file);
+ZEXPORT int     unzOpenCurrentFilePassword(unzFile file, const char *password);
+ZEXPORT int     unzOpenCurrentFile2(unzFile file, int *method, int *level, int raw);
+ZEXPORT int     unzOpenCurrentFile3(unzFile file, int *method, int *level, int raw, const char *password);
+ZEXPORT int     unzReadCurrentFile(unzFile file, void *buf, uint32_t len);
+ZEXPORT int     unzCloseCurrentFile(unzFile file);
+
+
+ZEXPORT int     unzGetCurrentFileInfo(unzFile file, unz_file_info *pfile_info, char *filename,
+    uint16_t filename_size, void *extrafield, uint16_t extrafield_size, char *comment,
+    uint16_t comment_size);
+ZEXPORT int     unzGetCurrentFileInfo64(unzFile file, unz_file_info64 * pfile_info, char *filename,
+    uint16_t filename_size, void *extrafield, uint16_t extrafield_size, char *comment,
+    uint16_t comment_size);
+
+ZEXPORT int     unzGoToFirstFile(unzFile file);
+ZEXPORT int     unzGoToNextFile(unzFile file);
+ZEXPORT int     unzLocateFile(unzFile file, const char *filename, unzFileNameComparer filename_compare_func);
+
+ZEXPORT int     unzGetLocalExtrafield(unzFile file, void *buf, unsigned int len);
+
+/***************************************************************************/
+/* Raw access to zip file */
+
+typedef struct unz_file_pos_s
+{
+    uint32_t pos_in_zip_directory;  /* offset in zip file directory */
+    uint32_t num_of_file;           /* # of file */
+} unz_file_pos;
+
+ZEXPORT int     unzGetFilePos(unzFile file, unz_file_pos *file_pos);
+ZEXPORT int     unzGoToFilePos(unzFile file, unz_file_pos *file_pos);
+
+typedef struct unz64_file_pos_s
+{
+    int64_t  pos_in_zip_directory;   /* offset in zip file directory  */
+    uint64_t num_of_file;            /* # of file */
+} unz64_file_pos;
+
+ZEXPORT int     unzGetFilePos64(unzFile file, unz64_file_pos *file_pos);
+ZEXPORT int     unzGoToFilePos64(unzFile file, const unz64_file_pos *file_pos);
+
+ZEXPORT int64_t unzGetOffset64(unzFile file);
+ZEXPORT int32_t unzGetOffset(unzFile file);
+ZEXPORT int     unzSetOffset64(unzFile file, int64_t pos);
+ZEXPORT int     unzSetOffset(unzFile file, uint32_t pos);
+ZEXPORT int64_t unztell(unzFile file);
+ZEXPORT int32_t unzTell(unzFile file);
+ZEXPORT int64_t unzTell64(unzFile file);
+ZEXPORT int     unzSeek(unzFile file, int32_t offset, int origin);
+ZEXPORT int     unzSeek64(unzFile file, int64_t offset, int origin);
+ZEXPORT int     unzEndOfFile(unzFile file);
+ZEXPORT void*   unzGetStream(unzFile file);
 
 /***************************************************************************/
 
-unzFile ZEXPORT unzOpen(const char *path);
-unzFile ZEXPORT unzOpen64(const void *path);
-unzFile ZEXPORT unzOpen2(const char *path, zlib_filefunc_def *pzlib_filefunc_def);
-unzFile ZEXPORT unzOpen2_64(const void *path, zlib_filefunc64_def *pzlib_filefunc_def);
-unzFile ZEXPORT unzOpen_MZ(void *stream);
-
-int ZEXPORT unzClose(unzFile file);
-int ZEXPORT unzClose_MZ(unzFile file);
-int ZEXPORT unzGetGlobalInfo(unzFile file, unz_global_info* pglobal_info32);
-int ZEXPORT unzGetGlobalInfo64(unzFile file, unz_global_info64 *pglobal_info);
-int ZEXPORT unzGetGlobalComment(unzFile file, char *comment, uint16_t comment_size);
-int ZEXPORT unzOpenCurrentFile(unzFile file);
-int ZEXPORT unzOpenCurrentFilePassword(unzFile file, const char *password);
-int ZEXPORT unzOpenCurrentFile2(unzFile file, int *method, int *level, int raw);
-int ZEXPORT unzOpenCurrentFile3(unzFile file, int *method, int *level, int raw, const char *password);
-int ZEXPORT unzReadCurrentFile(unzFile file, void *buf, uint32_t len);
-int ZEXPORT unzCloseCurrentFile(unzFile file);
-
-int ZEXPORT unzGetCurrentFileInfo(unzFile file, unz_file_info *pfile_info, char *filename,
-    uint16_t filename_size, void *extrafield, uint16_t extrafield_size, char *comment, uint16_t comment_size);
-int ZEXPORT unzGetCurrentFileInfo64(unzFile file, unz_file_info64 * pfile_info, char *filename,
-    uint16_t filename_size, void *extrafield, uint16_t extrafield_size, char *comment, uint16_t comment_size);
-int ZEXPORT unzGoToFirstFile(unzFile file);
-int ZEXPORT unzGoToNextFile(unzFile file);
-int ZEXPORT unzLocateFile(unzFile file, const char *filename, unzFileNameComparer filename_compare_func);
-
-int64_t ZEXPORT unzGetOffset64(unzFile file);
-int32_t ZEXPORT unzGetOffset(unzFile file);
-int ZEXPORT unzSetOffset64(unzFile file, uint64_t pos);
-int ZEXPORT unzSetOffset(unzFile file, uint32_t pos);
-int ZEXPORT unzGetLocalExtrafield(unzFile file, void *buf, unsigned len);
-void* ZEXPORT unzGetStream(unzFile file);
-
-/***************************************************************************/
-
-void fill_fopen_filefunc(zlib_filefunc_def *pzlib_filefunc_def);
-void fill_fopen64_filefunc(zlib_filefunc64_def *pzlib_filefunc_def);
-void fill_win32_filefunc(zlib_filefunc_def *pzlib_filefunc_def);
-void fill_win32_filefunc64(zlib_filefunc64_def *pzlib_filefunc_def);
-void fill_win32_filefunc64A(zlib_filefunc64_def *pzlib_filefunc_def);
-void fill_win32_filefunc64W(zlib_filefunc64_def *pzlib_filefunc_def);
-void fill_memory_filefunc(zlib_filefunc_def *pzlib_filefunc_def);
-
-/***************************************************************************/
-
-#define check_file_exists       mz_os_file_exists
-#define dosdate_to_tm           mz_zip_dosdate_to_tm
-#define change_file_date        mz_os_set_file_date
-#define get_file_date           mz_os_get_file_date
-#define is_large_file(x)        (mz_os_get_file_size(x) >= UINT32_MAX)
-#define makedir                 mz_dir_make
-#define get_file_crc(p,b,bs,rc) mz_file_get_crc(p,rc)
-
-#define MKDIR                   mz_os_make_dir
-#define CHDIR                   chdir
+ZEXPORT void fill_fopen_filefunc(zlib_filefunc_def *pzlib_filefunc_def);
+ZEXPORT void fill_fopen64_filefunc(zlib_filefunc64_def *pzlib_filefunc_def);
+ZEXPORT void fill_win32_filefunc(zlib_filefunc_def *pzlib_filefunc_def);
+ZEXPORT void fill_win32_filefunc64(zlib_filefunc64_def *pzlib_filefunc_def);
+ZEXPORT void fill_win32_filefunc64A(zlib_filefunc64_def *pzlib_filefunc_def);
+ZEXPORT void fill_win32_filefunc64W(zlib_filefunc64_def *pzlib_filefunc_def);
+ZEXPORT void fill_memory_filefunc(zlib_filefunc_def *pzlib_filefunc_def);
 
 /***************************************************************************/
 

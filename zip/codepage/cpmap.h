@@ -5,6 +5,9 @@
 extern "C" {
 #endif
     
+#include <CoreFoundation/CoreFoundation.h>
+#include <CoreServices/CoreServices.h>
+    
 // CFStringConvertWindowsCodepageToEncoding + missing encoding/codepages
 CFStringEncoding _CFStringConvertWindowsCodepageToEncoding(UInt32 codepage);
 

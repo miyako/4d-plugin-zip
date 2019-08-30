@@ -1,0 +1,14 @@
+﻿  //%attributes = {"folder":"zip","lang":"en"} comment added and reserved by 4D.
+$src:=Get 4D folder(Current resources folder)+Current method name+Folder separator
+CREATE FOLDER($src;*)
+
+METHOD GET CODE(Current method path;$code)
+TEXT TO DOCUMENT($src+Current method name+".txt";$code;"utf-8")
+
+$pass:=""
+
+$dst:=System folder(Desktop)+Current method name+".zip"
+$success:=Zip ($src;$dst;$pass;0;ZIP_With_attributes)
+
+$dst:=System folder(Desktop)+Current method name+".7z"
+$success:=Zip ($src;$dst;$pass;0;ZIP_7Z)
