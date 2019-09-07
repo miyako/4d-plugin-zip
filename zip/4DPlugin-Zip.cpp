@@ -100,9 +100,7 @@ void Unzip(PA_PluginParameters params) {
     PA_long32 method_id = 0;
 #endif
     
-#if LESS_CALLBACK
     time_t startTime = time(0);
-#endif
     
     bool isCallbackSet = Param5.getUTF16Length();
     
@@ -350,13 +348,12 @@ void Unzip(PA_PluginParameters params) {
                             absolute_path = output;
                             absolute_path+= folder_separator + sub_path;
                             
-#if LESS_CALLBACK
                             time_t now = time(0);
                             time_t elapsedTime = abs(startTime - now);
                             if(elapsedTime > 0)
                             {
                                 startTime = now;
-#endif
+
                                 if(isCallbackSet)
                                 {
                                     if(method_id)
@@ -410,10 +407,20 @@ void Unzip(PA_PluginParameters params) {
                                 {
                                     PA_YieldAbsolute();
                                 }
-#if LESS_CALLBACK
+
+                                PA_Variable cbparams;
+                                bool isProcessDying = PA_GetBooleanVariable(PA_ExecuteCommandByID(672/* Process aborted */, &cbparams, 0));
+                                /* PA_IsProcessDying is not threadSafe */
+                                
+                                if(isProcessDying)
+                                {
+                                    /* abort (runtime explorer, not debugger) */
+                                    abortedByCallbackMethod = true;
+                                    goto unzip_abort_transfer;
+                                }
+                                
                             }
-#endif
-                            
+
                             if(!abortedByCallbackMethod)
                             {
                                 if(relative_path.size() > 0)
@@ -527,16 +534,7 @@ void Unzip(PA_PluginParameters params) {
                             }
                         }
                         
-                        PA_Variable cbparams;
-                        bool isProcessDying = PA_GetBooleanVariable(PA_ExecuteCommandByID(672/* Process aborted */, &cbparams, 0));
-                        /* PA_IsProcessDying is not threadSafe */
-                        
-                        if(isProcessDying)
-                        {
-                            /* abort (runtime explorer, not debugger) */
-                            abortedByCallbackMethod = true;
-                            goto unzip_abort_transfer;
-                        }
+
                     }
                     
                     while (err == MZ_OK && !abortedByCallbackMethod);
@@ -719,9 +717,7 @@ void Zip(PA_PluginParameters params) {
     PA_long32 method_id = 0;
 #endif
     
-#if LESS_CALLBACK
     time_t startTime = time(0);
-#endif
     
     bool isCallbackSet = Param6.getUTF16Length();
     
@@ -908,73 +904,70 @@ void Zip(PA_PluginParameters params) {
                     err = mz_zip_writer_entry_close(writer);
                 }
                 
-#if LESS_CALLBACK
+
                     time_t now = time(0);
                     time_t elapsedTime = abs(startTime - now);
                     
-                    if(elapsedTime > 0)
+                if(elapsedTime > 0)
+                {
+                    startTime = now;
+                    
+                    if(isCallbackSet)
                     {
-                        startTime = now;
-#endif
-                        if(isCallbackSet)
+                        if(method_id)
                         {
-                            if(method_id)
-                            {
-                                C_TEXT tempUstr;
-                                tempUstr.setUTF8String((const uint8_t *)relative_path_utf8.c_str(), (uint32_t)relative_path_utf8.length());
-                                PA_Unistring methodParam1 = PA_CreateUnistring((PA_Unichar *)tempUstr.getUTF16StringPtr());
-                                PA_SetStringVariable(&cbparams[0], &methodParam1);
-                                tempUstr.setUTF8String((const uint8_t *)absolute_path.c_str(), (uint32_t)absolute_path.length());
-                                PA_Unistring methodParam2 = PA_CreateUnistring((PA_Unichar *)tempUstr.getUTF16StringPtr());
-                                PA_SetStringVariable(&cbparams[1], &methodParam2);
-                                
-                                PA_SetRealVariable(&cbparams[2], i+1);
-                                PA_SetRealVariable(&cbparams[3], number_entry);
-                                
-                                PA_Variable result = PA_ExecuteMethodByID(method_id, cbparams, 4);
-                                
-                                if(PA_GetVariableKind(result) == eVK_Boolean)
-                                    abortedByCallbackMethod = PA_GetBooleanVariable(result);
-                                
-                            }else
-                            {
-                                /*
-                                 
-                                 In previous versions, it was possible to invoke a shared component method with PA_ExecuteCommandByID and EXECUTE METHOD:C1007. This is no longer possible. Now, only a method in the host database can be invoked (PA_ExecuteMethodByID is allowed).
-                                 
-                                 */
-                                
-                                PA_SetBooleanVariable(&cbparams[1], false);
-                                
-                                C_TEXT tempUstr;
-                                tempUstr.setUTF8String((const uint8_t *)relative_path_utf8.c_str(), (uint32_t)relative_path_utf8.length());
-                                PA_Unistring methodParam1 = PA_CreateUnistring((PA_Unichar *)tempUstr.getUTF16StringPtr());
-                                PA_SetStringVariable(&cbparams[2], &methodParam1);
-                                tempUstr.setUTF8String((const uint8_t *)absolute_path.c_str(), (uint32_t)absolute_path.length());
-                                PA_Unistring methodParam2 = PA_CreateUnistring((PA_Unichar *)tempUstr.getUTF16StringPtr());
-                                PA_SetStringVariable(&cbparams[3], &methodParam2);
-                                
-                                PA_SetRealVariable(&cbparams[4], i+1);
-                                PA_SetRealVariable(&cbparams[5], number_entry);
-                                PA_ExecuteCommandByID(1007, cbparams, 6);
-                                
-                                abortedByCallbackMethod = PA_GetBooleanVariable(cbparams[1]);
-                                
-                            }
+                            C_TEXT tempUstr;
+                            tempUstr.setUTF8String((const uint8_t *)relative_path_utf8.c_str(), (uint32_t)relative_path_utf8.length());
+                            PA_Unistring methodParam1 = PA_CreateUnistring((PA_Unichar *)tempUstr.getUTF16StringPtr());
+                            PA_SetStringVariable(&cbparams[0], &methodParam1);
+                            tempUstr.setUTF8String((const uint8_t *)absolute_path.c_str(), (uint32_t)absolute_path.length());
+                            PA_Unistring methodParam2 = PA_CreateUnistring((PA_Unichar *)tempUstr.getUTF16StringPtr());
+                            PA_SetStringVariable(&cbparams[1], &methodParam2);
                             
-                            if(abortedByCallbackMethod)
-                            {
-                                goto zip_abort_transfer;
-                            }
+                            PA_SetRealVariable(&cbparams[2], i+1);
+                            PA_SetRealVariable(&cbparams[3], number_entry);
+                            
+                            PA_Variable result = PA_ExecuteMethodByID(method_id, cbparams, 4);
+                            
+                            if(PA_GetVariableKind(result) == eVK_Boolean)
+                                abortedByCallbackMethod = PA_GetBooleanVariable(result);
+                            
                         }else
                         {
-                            PA_YieldAbsolute();
+                            /*
+                             
+                             In previous versions, it was possible to invoke a shared component method with PA_ExecuteCommandByID and EXECUTE METHOD:C1007. This is no longer possible. Now, only a method in the host database can be invoked (PA_ExecuteMethodByID is allowed).
+                             
+                             */
+                            
+                            PA_SetBooleanVariable(&cbparams[1], false);
+                            
+                            C_TEXT tempUstr;
+                            tempUstr.setUTF8String((const uint8_t *)relative_path_utf8.c_str(), (uint32_t)relative_path_utf8.length());
+                            PA_Unistring methodParam1 = PA_CreateUnistring((PA_Unichar *)tempUstr.getUTF16StringPtr());
+                            PA_SetStringVariable(&cbparams[2], &methodParam1);
+                            tempUstr.setUTF8String((const uint8_t *)absolute_path.c_str(), (uint32_t)absolute_path.length());
+                            PA_Unistring methodParam2 = PA_CreateUnistring((PA_Unichar *)tempUstr.getUTF16StringPtr());
+                            PA_SetStringVariable(&cbparams[3], &methodParam2);
+                            
+                            PA_SetRealVariable(&cbparams[4], i+1);
+                            PA_SetRealVariable(&cbparams[5], number_entry);
+                            PA_ExecuteCommandByID(1007, cbparams, 6);
+                            
+                            abortedByCallbackMethod = PA_GetBooleanVariable(cbparams[1]);
+                            
                         }
                         
-#if LESS_CALLBACK
+                        if(abortedByCallbackMethod)
+                        {
+                            goto zip_abort_transfer;
+                        }
+                    }else
+                    {
+                        PA_YieldAbsolute();
                     }
-#endif
-
+                    
+                    
                     PA_Variable params;
                     bool isProcessDying = PA_GetBooleanVariable(PA_ExecuteCommandByID(672/* Process aborted */, &params, 0));
                     /* PA_IsProcessDying is not threadSafe */
@@ -985,6 +978,8 @@ void Zip(PA_PluginParameters params) {
                         abortedByCallbackMethod = true;
                         goto zip_abort_transfer;
                     }
+                    
+                }
 
             }/* for (unsigned int i = 0; i < relative_paths.size(); ++i) */
             
@@ -1202,13 +1197,16 @@ void get_subpaths(wstring& path,
     
     if(h != INVALID_HANDLE_VALUE){
         
-        unsigned int yield_counter = 0;
+        time_t startTime = time(0);
         
         do {
+
+			time_t now = time(0);
+			time_t elapsedTime = abs(startTime - now);
             
-            yield_counter++;
-            if ((yield_counter % YIELD_FACTOR) == 0)
+            if(elapsedTime > 0)
             {
+                startTime = now;
                 PA_YieldAbsolute();
             }
             
@@ -1426,12 +1424,17 @@ void get_subpaths(absolute_path_t& spath,
                                               includingPropertiesForKeys:[NSArray arrayWithObjects:NSURLIsDirectoryKey, NSURLIsHiddenKey, nil]
                                                                  options:0
                                                             errorHandler:nil];
-                    unsigned int yield_counter = 0;
+
+                    time_t startTime = time(0);
+                    
                     while(NSURL *u = [dirEnum nextObject]){
                         
-                        yield_counter++;
-                        if((yield_counter % YIELD_FACTOR) == 0)
+                        time_t now = time(0);
+                        time_t elapsedTime = abs(startTime - now);
+                        
+                        if(elapsedTime > 0)
                         {
+                            startTime = now;
                             PA_YieldAbsolute();
                         }
                         
@@ -1486,11 +1489,16 @@ void get_subpaths(absolute_path_t& spath,
                 
                 //a folder with contents
                 
+                time_t startTime = time(0);
+                
                 for(NSUInteger i = 0; i < [paths count]; i++){
                     
+                    time_t now = time(0);
+                    time_t elapsedTime = abs(startTime - now);
                     
-                    if((i % YIELD_FACTOR) == 0)
+                    if(elapsedTime > 0)
                     {
+                        startTime = now;
                         PA_YieldAbsolute();
                     }
                     

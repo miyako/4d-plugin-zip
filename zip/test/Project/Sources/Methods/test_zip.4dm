@@ -7,9 +7,13 @@
 
 $pass:="password"
 
-$src:=System folder:C487(Desktop:K41:16)+"test"+Folder separator:K24:12
+$src:=System folder:C487(Applications or program files:K41:17)+"4D"+Folder separator:K24:12+"4D v17 R6"+Folder separator:K24:12+"4D.app"
 $dst:=System folder:C487(Desktop:K41:16)+Current method name:C684+".zip"
-$success:=Zip ($src;$dst;$pass;ZIP_Compression_level_default;ZIP_With_attributes)
+
+$start:=Milliseconds:C459
+$success:=Zip ($src;$dst;$pass;ZIP_Compression_level_2;ZIP_With_attributes)
+$duration:=Milliseconds:C459-$start
+
 
 $dst:=System folder:C487(Desktop:K41:16)+Current method name:C684+".7z"
 $success:=Zip ($src;$dst;$pass;0;ZIP_7Z)
