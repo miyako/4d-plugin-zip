@@ -19,6 +19,8 @@ codepage|INT32|コードページ（デフォルト:0=UTF-8）
 下記の定数が使用できます。
 
 ```
+ZIP_Compression_level_default (-1)
+ZIP_Compression_level_0 (0)
 ZIP_Compression_level_1 (1)
 ZIP_Compression_level_2 (2)
 ZIP_Compression_level_3 (3)
@@ -29,12 +31,6 @@ ZIP_Compression_level_7 (7)
 ZIP_Compression_level_8 (8)
 ZIP_Compression_level_9 (9)
 ```
-
-``1``は``Z_BEST_SPEED``，``9``は``Z_BEST_COMPRESSION``ということです。
-
-``0``を指定した場合は``Z_DEFAULT_COMPRESSION``つまり``-1``になります。
-
-``0``つまり``Z_NO_COMPRESSION``を指定することはできないということです。（しまった！）
 
 * フラグについて
 
