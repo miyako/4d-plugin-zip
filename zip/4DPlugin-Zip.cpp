@@ -58,7 +58,7 @@ void Unzip(PA_PluginParameters params) {
     Param5.fromParamAtIndex(pParams, 5);//callback
     Param6.fromParamAtIndex(pParams, 6);//codepage
     
-    //pass
+    //Param3:password
     std::string password;
     convertToString(Param3, password);
     bool with_password = (password.length() != 0);
@@ -76,6 +76,7 @@ void Unzip(PA_PluginParameters params) {
     const wchar_t *output = (const wchar_t*)Param2.getUTF16StringPtr();
 #endif
     
+    //Param4:flags (ignore_dot)
     unsigned int flags = Param4.getIntValue();
     
     bool ignore_dot = !!(flags & 1L);
@@ -99,17 +100,13 @@ void Unzip(PA_PluginParameters params) {
     PA_long32 method_id = 0;
 #endif
     
-//    PA_long32 currentProcessNumber = PA_GetCurrentProcessNumber();
-    
 #if LESS_CALLBACK
     time_t startTime = time(0);
-    unsigned int yield_counter = 0;
 #endif
     
     bool isCallbackSet = Param5.getUTF16Length();
     
     bool abortedByCallbackMethod = false;
-    //    bool use_callback = Param5.getUTF16Length();
     
     PA_Variable    cbparams[8];
     
@@ -353,15 +350,15 @@ void Unzip(PA_PluginParameters params) {
                             absolute_path = output;
                             absolute_path+= folder_separator + sub_path;
                             
-                            if(isCallbackSet)
-                            {
 #if LESS_CALLBACK
-                                time_t now = time(0);
-                                time_t elapsedTime = abs(startTime - now);
-                                if(elapsedTime > 0)
-                                {
-                                    startTime = now;
+                            time_t now = time(0);
+                            time_t elapsedTime = abs(startTime - now);
+                            if(elapsedTime > 0)
+                            {
+                                startTime = now;
 #endif
+                                if(isCallbackSet)
+                                {
                                     if(method_id)
                                     {
                                         C_TEXT tempUstr;
@@ -409,25 +406,35 @@ void Unzip(PA_PluginParameters params) {
                                         
                                         abortedByCallbackMethod = PA_GetBooleanVariable(cbparams[1]);
                                     }
-#if LESS_CALLBACK
+                                }else
+                                {
+                                    PA_YieldAbsolute();
                                 }
-#endif
+#if LESS_CALLBACK
                             }
+#endif
                             
                             if(!abortedByCallbackMethod)
                             {
                                 if(relative_path.size() > 0)
                                 {
+                                    //an item
                                     if( !ignore_dot || ((relative_path.at(0) != '.') && relative_path.find("/.") == std::string::npos))
                                     {
                                         create_parent_folder(absolute_path);
                                         
+                                        //a folder (by path)
                                         if(relative_path.at(relative_path.size() - 1) == folder_separator)
                                         {
-                                            
                                             create_folder(absolute_path);
                                         }
                                         
+                                        //a folder (by attribute)
+                                        if(((zi->external_fa >> 16L) & 0x4000) == 0x4000)
+                                        {
+                                            create_folder(absolute_path);
+                                        }
+
                                         bool is_symbolic_link = false;
 #if VERSIONMAC
                                         if(with_atttributes){
@@ -478,14 +485,7 @@ void Unzip(PA_PluginParameters params) {
                                                 {
                                                     while ((read = mz_zip_entry_read(h->zip_handle, &buf[0], BUFFER_SIZE)) > 0)
                                                     {
-                                                        yield_counter++;
-                                                        
                                                         ofs.write((const char *)&buf[0], read);
-                                                        
-                                                        if((yield_counter % YIELD_FACTOR) == 0)
-                                                        {
-                                                            PA_YieldAbsolute();
-                                                        }
                                                     }
                                                     
                                                     mz_zip_entry_close(h->zip_handle);
@@ -502,8 +502,6 @@ void Unzip(PA_PluginParameters params) {
                                             
                                             if(permission)
                                             {
-                                                yield_counter++;
-                                                
                                                 NSDictionary *itemAttributes = [NSDictionary
                                                                                 dictionaryWithObject:[NSNumber numberWithShort:permission]
                                                                                 forKey:NSFilePosixPermissions];
@@ -518,6 +516,7 @@ void Unzip(PA_PluginParameters params) {
                                     }
                                     
                                 }
+                                
                             }
                             
                             err = mz_zip_reader_goto_next_entry(reader);
@@ -658,25 +657,35 @@ void Zip(PA_PluginParameters params) {
     relative_paths_t relative_paths;
     relative_path_t input_file_name;
     
-    //pass
+    //Param3:password
     std::string password;
     convertToString(Param3, password);
     bool with_password = (password.length() != 0);
     const char *pass = with_password ? password.c_str() : NULL;
     
-    //dst
+    //Param2:dst
     CUTF8String output_path;
     Param2.copyPath(&output_path);
     const char *output = (const char*)output_path.c_str();
     
-    //level
-    unsigned int level = Param4.getIntValue();
-    if(!level){
-        level = MZ_COMPRESS_LEVEL_DEFAULT;
-    }else if (level > 10){
-        level = 9;
+    //Param4:level
+    int16_t compress_level = (int16_t)Param4.getIntValue();
+    uint8_t compress_method = MZ_COMPRESS_METHOD_DEFLATE;
+    
+    if (compress_level > MZ_COMPRESS_LEVEL_BEST){
+        compress_level = MZ_COMPRESS_LEVEL_BEST;
+    }
+
+    //-1 is none and 0 is default for the plugin (reverse of zlib/mz)
+
+    if (compress_level == 0){
+        compress_level = MZ_COMPRESS_LEVEL_DEFAULT;
+    }else if (compress_level == (-1)){
+        compress_level = 0;
+        compress_method = MZ_COMPRESS_METHOD_STORE;
     }
     
+    //Param5:flags (ignore_dot,with_atttributes,without_enclosing_folder,with_encyption)
     unsigned int flags = Param5.getIntValue();
     
     bool ignore_dot = !!(flags & 1L);
@@ -686,13 +695,18 @@ void Zip(PA_PluginParameters params) {
 #else
     bool with_atttributes = false;
 #endif
+    uint8_t store_links = with_atttributes;
     
     bool without_enclosing_folder = !!(flags & 4L);
     bool with_encyption = !!(flags & 8L);
-    
+    uint8_t aes = with_encyption;
+
     bool with_bz2 = !!(flags & 16L);
-    bool with_lzma = !!(flags & 32L);
+    if(with_bz2) compress_method = MZ_COMPRESS_METHOD_BZIP2;
     
+    bool with_lzma = !!(flags & 32L);
+    if(with_lzma) compress_method = MZ_COMPRESS_METHOD_LZMA;
+        
 #if VERSIONWIN
     IMultiLanguage2 *mlang = NULL;
     CoCreateInstance(CLSID_CMultiLanguage, NULL, CLSCTX_INPROC_SERVER, IID_IMultiLanguage2, (void **)&mlang);
@@ -705,17 +719,13 @@ void Zip(PA_PluginParameters params) {
     PA_long32 method_id = 0;
 #endif
     
-//    PA_long32 currentProcessNumber = PA_GetCurrentProcessNumber();
-    
 #if LESS_CALLBACK
     time_t startTime = time(0);
-    unsigned int yield_counter = 0;
 #endif
     
     bool isCallbackSet = Param6.getUTF16Length();
     
     bool abortedByCallbackMethod = false;
-    //    bool use_callback = Param6.getUTF16Length();
     
     PA_Variable    cbparams[6];
     
@@ -744,43 +754,26 @@ void Zip(PA_PluginParameters params) {
     
     if(relative_paths.size()){
         
-        void *writer = NULL;
-        int16_t compress_method = MZ_COMPRESS_METHOD_DEFLATE;
+        mz_zip_writer *writer = NULL;
         
-        if(with_bz2)
-        {
-            compress_method = MZ_COMPRESS_METHOD_BZIP2;
-        }
-        
-        if(with_lzma)
-        {
-            compress_method = MZ_COMPRESS_METHOD_LZMA;
-        }
-        
-        unsigned int yield_counter = 0;
-        
-        mz_zip_writer_create(&writer);
-        
-        mz_zip_writer *h = (mz_zip_writer *)writer;
+        mz_zip_writer_create((void **)&writer);
+
         std::vector<uint8_t> buf(BUFFER_SIZE);
         
         double number_entry = relative_paths.size();
         
         if(with_password)
-        {
             mz_zip_writer_set_password(writer, pass);
-        }
         
         mz_zip_writer_set_compress_method(writer, compress_method);
-        mz_zip_writer_set_compress_level(writer, level);
-        
-        mz_zip_writer_set_aes(writer, with_encyption);
+        mz_zip_writer_set_compress_level(writer, compress_level);
+        mz_zip_writer_set_store_links(writer, store_links);
+        mz_zip_writer_set_aes(writer, aes);
         
         int32_t err = mz_zip_writer_open_file(writer, output, 0, 0);
         
         if (err == MZ_OK)
         {
-            
             returnValue.setIntValue(1);
             
 #if VERSIONMAC
@@ -792,10 +785,9 @@ void Zip(PA_PluginParameters params) {
                 relative_path_t relative_path = relative_paths.at(i);
                 absolute_path_t absolute_path = absolute_paths.at(i);
                 relative_path_t relative_path_utf8 = relative_path;
-                relative_path_t absolute_path_utf8;
+				relative_path_t absolute_path_utf8;
                 relative_path_t symbolic_path_utf8;
-                
-                bool isSymbolicLink = false;
+                relative_path_t symbolic_path;
 #if VERSIONMAC
                 absolute_path_utf8 = absolute_path;
 #else
@@ -808,18 +800,6 @@ void Zip(PA_PluginParameters params) {
                 
                 zi.version_madeby = MZ_VERSION_MADEBY;
                 
-#if VERSIONMAC
-                if(with_atttributes)
-                {
-                    NSString *symbolicPath = (NSString *)CFStringCreateWithFileSystemRepresentation(kCFAllocatorDefault, absolute_path.c_str());
-                    NSString *destinationPath = [fm destinationOfSymbolicLinkAtPath:symbolicPath error:nil];
-                    if(destinationPath){
-                        symbolic_path_utf8 = relative_path_t([destinationPath UTF8String]);
-                        [symbolicPath release];
-                        isSymbolicLink = TRUE;
-                    }
-                }
-#endif
                 if(charset > 0)
                 {
 #if VERSIONMAC
@@ -832,9 +812,9 @@ void Zip(PA_PluginParameters params) {
                 {
                     zi.flag |=  MZ_ZIP_FLAG_UTF8;
                 }
+                
                 zi.filename = relative_path.c_str();
                 zi.uncompressed_size = mz_os_get_file_size(path);
-                
                 zi.compression_method = compress_method;
                 if(with_encyption)
                 {
@@ -845,113 +825,99 @@ void Zip(PA_PluginParameters params) {
                                     &zi.accessed_date,
                                     &zi.creation_date);
                 
-                mz_os_get_file_attribs(path, &zi.external_fa);
+                uint32_t external_fa = 0;
+                bool is_symlink = false;
+                
 #if VERSIONMAC
-                if(with_atttributes)
+                NSDictionary *attributes = [fm attributesOfItemAtPath:[NSString stringWithUTF8String:path]error:nil];
+                if(attributes)
                 {
-                    NSDictionary *attributes = [fm attributesOfItemAtPath:
-                                                [NSString stringWithUTF8String:(const char *)absolute_path.c_str()]error:nil];
-                    if(attributes)
+                    if([[attributes valueForKey:NSFileType]isEqualToString:NSFileTypeCharacterSpecial])
                     {
-                        
-                        if([[attributes valueForKey:NSFileType]isEqualToString:NSFileTypeCharacterSpecial])
-                        {
-                            zi.external_fa = 0x20000000;
-                        }else
-                            if([[attributes valueForKey:NSFileType]isEqualToString:NSFileTypeDirectory])
-                            {
-                                zi.external_fa = 0x40000000;
-                            }else
-                                if([[attributes valueForKey:NSFileType]isEqualToString:NSFileTypeBlockSpecial])
-                                {
-                                    zi.external_fa = 0x60000000;
-                                }else
-                                    if([[attributes valueForKey:NSFileType]isEqualToString:NSFileTypeRegular])
-                                    {
-                                        zi.external_fa = 0x80000000;
-                                    }else
-                                        if(([[attributes valueForKey:NSFileType]isEqualToString:NSFileTypeSymbolicLink]))
-                                        {
-                                            zi.external_fa = 0xA0000000;
-                                        }else
-                                            if([[attributes valueForKey:NSFileType]isEqualToString:NSFileTypeSocket])
-                                            {
-                                                zi.external_fa = 0xC0000000;
-                                            }
-                        zi.external_fa |= ([[attributes valueForKey:NSFilePosixPermissions]shortValue] << 16L);
-                        
-                    }//attributes
-                    
-                }//with_atttributes
-#endif
-                bool is_dir = (mz_zip_attrib_is_dir(zi.external_fa, zi.version_madeby) == MZ_OK);
-                
-                if(with_password)
-                {
-                    if(is_dir)
-                    {
-                        mz_zip_writer_set_password(writer, NULL);/* mac archiver does not process password for folder */
+                        external_fa = 0020000 << 16L;
                     }else
-                    {
-                        mz_zip_writer_set_password(writer, pass);
-                    }
-                }
-                
-                if(mz_zip_writer_entry_open(writer, &zi) == MZ_OK)
-                {
-                    if (!is_dir)
-                    {
-                        if(with_password)
+                        if([[attributes valueForKey:NSFileType]isEqualToString:NSFileTypeDirectory])
                         {
-                            mz_zip_writer_set_password(writer, pass);
-                        }
-                        std::ifstream ifs(absolute_path.c_str(), std::ios::in|std::ios::binary);
-                        if(ifs.is_open())
-                        {
-                            if(isSymbolicLink)
+                            external_fa = 0040000 << 16L;
+                        }else
+                            if([[attributes valueForKey:NSFileType]isEqualToString:NSFileTypeBlockSpecial])
                             {
-                                yield_counter++;
-                                int32_t read = (int32_t)symbolic_path_utf8.length();
-                                int32_t written = mz_zip_entry_write(h->zip_handle, symbolic_path_utf8.c_str(), read);
-                                if (written != read)/* MZ_STREAM_ERROR */
-                                {
-                                    returnValue.setIntValue(0);
-                                    break;
-                                }
+                                external_fa = 0060000 << 16L;
                             }else
-                            {
-                                while(ifs.good())
+                                if([[attributes valueForKey:NSFileType]isEqualToString:NSFileTypeRegular])
                                 {
-                                    yield_counter++;
-                                    if((yield_counter % YIELD_FACTOR) == 0)
+                                    external_fa = 0100000 << 16L;
+                                }else
+                                    if(([[attributes valueForKey:NSFileType]isEqualToString:NSFileTypeSymbolicLink]))
                                     {
-                                        PA_YieldAbsolute();
-                                    }
-                                    ifs.read((char *)&buf[0], BUFFER_SIZE);
-                                    int32_t read = (int32_t)ifs.gcount();
-                                    int32_t written = mz_zip_entry_write(h->zip_handle, &buf[0], read);
-                                    if (written != read)/* MZ_STREAM_ERROR */
-                                    {
-                                        returnValue.setIntValue(0);
-                                        break;
-                                    }
-                                }
-                            }
-                            
-                            ifs.close();
-                        }
-                    }
+                                        external_fa = 0120000 << 16L;
+                                        is_symlink = true;
+                                        NSString *symbolicPath = (NSString *)CFStringCreateWithFileSystemRepresentation(
+                                                                                                                        kCFAllocatorDefault,
+                                                                                                                        path);
+                                        NSString *destinationPath = [fm destinationOfSymbolicLinkAtPath:symbolicPath error:nil];
+                                        if(destinationPath)
+                                        {
+                                            symbolic_path_utf8 = relative_path_t([destinationPath UTF8String]);
+                                            symbolic_path = symbolic_path_utf8;
+                                            if(charset > 0)
+                                            {
+                                                convertPathToCodepage(symbolic_path, charset);
+                                            }
+                                            zi.linkname = symbolic_path.c_str();
+                                            zi.uncompressed_size = symbolic_path.length();
+                                        }
+                                        [symbolicPath release];
+                                    }else
+                                        if([[attributes valueForKey:NSFileType]isEqualToString:NSFileTypeSocket])
+                                        {
+                                            external_fa = 0140000 << 16L;
+                                        }
+                    external_fa |= ([[attributes valueForKey:NSFilePosixPermissions]shortValue] << 16L);
+                }
+#else
+                mz_os_get_file_attribs(path, &external_fa);
+#endif
+                zi.external_fa = external_fa;
+                
+                if(is_symlink)
+                {
+                    err = mz_zip_writer_entry_open(writer, &zi);
+                    err = mz_zip_writer_entry_write(writer, symbolic_path.c_str(), (int32_t)symbolic_path.length());
                     err = mz_zip_writer_entry_close(writer);
                     
-                    if(isCallbackSet)
+                }else
+                {
+                    err = mz_zip_writer_entry_open(writer, &zi);
+                    std::ifstream ifs(absolute_path.c_str(), std::ios::in|std::ios::binary);
+                    if(ifs.is_open())
                     {
-#if LESS_CALLBACK
-                        time_t now = time(0);
-                        time_t elapsedTime = abs(startTime - now);
-                        if(elapsedTime > 0)
+                        while(ifs.good())
                         {
-                            startTime = now;
+                            ifs.read((char *)&buf[0], BUFFER_SIZE);
+                            int32_t read = (int32_t)ifs.gcount();
+                            int32_t written = mz_zip_entry_write(writer->zip_handle, &buf[0], read);
+                            if (written != read)/* MZ_STREAM_ERROR */
+                            {
+                                returnValue.setIntValue(0);
+                                break;
+                            }
+                        }//ifs.good()
+                        ifs.close();
+                    }//ifs.is_open()
+                    err = mz_zip_writer_entry_close(writer);
+                }
+                
+#if LESS_CALLBACK
+                    time_t now = time(0);
+                    time_t elapsedTime = abs(startTime - now);
+                    
+                    if(elapsedTime > 0)
+                    {
+                        startTime = now;
 #endif
+                        if(isCallbackSet)
+                        {
                             if(method_id)
                             {
                                 C_TEXT tempUstr;
@@ -974,7 +940,7 @@ void Zip(PA_PluginParameters params) {
                             {
                                 /*
                                  
-                                In previous versions, it was possible to invoke a shared component method with PA_ExecuteCommandByID and EXECUTE METHOD:C1007. This is no longer possible. Now, only a method in the host database can be invoked (PA_ExecuteMethodByID is allowed).
+                                 In previous versions, it was possible to invoke a shared component method with PA_ExecuteCommandByID and EXECUTE METHOD:C1007. This is no longer possible. Now, only a method in the host database can be invoked (PA_ExecuteMethodByID is allowed).
                                  
                                  */
                                 
@@ -1000,11 +966,15 @@ void Zip(PA_PluginParameters params) {
                             {
                                 goto zip_abort_transfer;
                             }
-#if LESS_CALLBACK
+                        }else
+                        {
+                            PA_YieldAbsolute();
                         }
-#endif
+                        
+#if LESS_CALLBACK
                     }
-                    
+#endif
+
                     PA_Variable params;
                     bool isProcessDying = PA_GetBooleanVariable(PA_ExecuteCommandByID(672/* Process aborted */, &params, 0));
                     /* PA_IsProcessDying is not threadSafe */
@@ -1015,9 +985,7 @@ void Zip(PA_PluginParameters params) {
                         abortedByCallbackMethod = true;
                         goto zip_abort_transfer;
                     }
-                    
-                }/* mz_zip_writer_entry_open */
-                
+
             }/* for (unsigned int i = 0; i < relative_paths.size(); ++i) */
             
         zip_abort_transfer:
@@ -1035,7 +1003,7 @@ void Zip(PA_PluginParameters params) {
             mz_zip_writer_close(writer);
             
         }/*  if (err == MZ_OK) */
-        mz_zip_writer_delete(&writer);
+        mz_zip_writer_delete((void **)&writer);
     }
     
 #if VERSIONWIN
@@ -1045,13 +1013,13 @@ void Zip(PA_PluginParameters params) {
     }
 #endif
     
-    if(abortedByCallbackMethod){
+    if(abortedByCallbackMethod)
+    {
         returnValue.setIntValue(0);
     }
     
     returnValue.setReturn(pResult);
 }
-
 
 #pragma mark -
 

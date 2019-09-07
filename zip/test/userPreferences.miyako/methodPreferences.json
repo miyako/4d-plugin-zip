@@ -191,11 +191,11 @@
 	"Sources/Methods/test_zip.4dm": {
 		"startSelection": 0,
 		"endSelection": 0,
-		"firstSelectedLine": 0,
-		"lastSelectedLine": 0,
+		"firstSelectedLine": 2,
+		"lastSelectedLine": 2,
 		"folding": [],
 		"bookmarks": [],
-		"stamp": "2019-08-30T06:50:00.000Z"
+		"stamp": "2019-09-07T03:44:38.041Z"
 	},
 	"Sources/Methods/test_password.4dm": {
 		"startSelection": 40,

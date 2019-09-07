@@ -8,14 +8,14 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			699zHB7CcVwWr6C5Wnfr/iS2ER0=
+			xDDTbiVlWWO5LAx7UeFyZs4t7Io=
 			</data>
 			<key>optional</key>
 			<true/>
 		</dict>
 		<key>Resources/constants.xlf</key>
 		<data>
-		5h1/92yvz4Z4/4vlBCqTpbTqlxo=
+		G5gy0iNNwzsg6uWWuO/lxW/Zl10=
 		</data>
 	</dict>
 	<key>files2</key>
@@ -35,11 +35,11 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			699zHB7CcVwWr6C5Wnfr/iS2ER0=
+			xDDTbiVlWWO5LAx7UeFyZs4t7Io=
 			</data>
 			<key>hash2</key>
 			<data>
-			AcRBnQfj/t2slL3Hn4uS8WVjkUzKogHbjyLOZlrQ1rY=
+			cbBTx97fhwuPOB1vD9PpyzO3faOEGqQ1vwN1mtsojh0=
 			</data>
 			<key>optional</key>
 			<true/>
@@ -48,33 +48,33 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			5h1/92yvz4Z4/4vlBCqTpbTqlxo=
+			G5gy0iNNwzsg6uWWuO/lxW/Zl10=
 			</data>
 			<key>hash2</key>
 			<data>
-			broiRAepHrJx/jSVw3ylT4l95os1CRH/f7g5VQ59E+8=
+			Y00lKpVlu7f4mRQnewX310WOJZL9usLCts6uJeznhkg=
 			</data>
 		</dict>
 		<key>Windows/Zip.4DX</key>
 		<dict>
 			<key>hash</key>
 			<data>
-			hL9gqzB1pAgChKZ1uj+Jqt43yxs=
+			XAmx28Py4TsNRRmB0K78scS6uv0=
 			</data>
 			<key>hash2</key>
 			<data>
-			ZCCEqtPmUM+2iJDxTvuZrd5mchV7dH5Z4RZvNF7YQT0=
+			qgpW1AEOmgdGAxxSwVNEie8F7oEIVFKCQRSeqwHxSc0=
 			</data>
 		</dict>
 		<key>Windows64/Zip.4DX</key>
 		<dict>
 			<key>hash</key>
 			<data>
-			zvoZ7ULt+O/aKx6NzgaqTillGNg=
+			Zl3+ZMR5ImddqH+qud7iRpiQkJY=
 			</data>
 			<key>hash2</key>
 			<data>
-			xZ0isPdvytfz/ISMhvmTet0RKxwRCg6HeDepN7N2icI=
+			29zGCsrT16RDXdQrwaEb0c03JCsGEOJxVjCxdFaJ+c4=
 			</data>
 		</dict>
 		<key>manifest.json</key>
