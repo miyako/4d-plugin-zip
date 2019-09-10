@@ -39,7 +39,7 @@ this version replaces the original [madler/zlib/minizip](https://github.com/madl
 
 ### Releases
 
-[3.1](https://github.com/miyako/4d-plugin-zip/releases/tag/3.1) update minizip version (``2.8.9``)
+[3.2](https://github.com/miyako/4d-plugin-zip/releases/tag/3.2) update minizip version (``2.8.9``)
 
 [2.5](https://github.com/miyako/4d-plugin-zip/releases/tag/2.5) better processing of symblic links (unzipping apps)
 
