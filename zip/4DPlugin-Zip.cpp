@@ -434,7 +434,7 @@ void Unzip(PA_PluginParameters params) {
                                         if(relative_path.at(relative_path.size() - 1) == folder_separator)
                                         {
                                             create_folder(absolute_path);
-                                        }
+                                        }else
                                         
                                         //a folder (by attribute)
                                         if(((zi->external_fa >> 16L) & 0x4000) == 0x4000)
@@ -456,19 +456,20 @@ void Unzip(PA_PluginParameters params) {
                                                     if(read > 0)
                                                     {
                                                         std::string symlink_absolute_path = absolute_path;
-                                                        NSString *_symlinkSrcPath = (NSString *)CFStringCreateWithFileSystemRepresentation(kCFAllocatorDefault, symlink_absolute_path.c_str());
-                                                        symlink_absolute_path = absolute_path_t([[_symlinkSrcPath stringByDeletingLastPathComponent]fileSystemRepresentation]);
-                                                        [_symlinkSrcPath release];
-                                                        symlink_absolute_path += folder_separator + std::string((char *)&_buf[0]);
-                                                        NSString *symlinkDstPath = [[NSString alloc]initWithUTF8String:symlink_absolute_path.c_str()];
-                                                        [symlinkDstPaths addObject:symlinkDstPath];
-                                                        [symlinkDstPath release];
                                                         
-                                                        NSString *symlinkSrcPath = [[NSString alloc]initWithUTF8String:absolute_path.c_str()];
-                                                        [symlinkSrcPaths addObject:symlinkSrcPath];
-                                                        [symlinkSrcPath release];
+                                                        NSString *symlinkDstPath =[[NSString alloc]initWithBytes:&buf[0] length:len encoding:NSUTF8StringEncoding];
+                                                        if(symlinkDstPath)
+                                                        {
+                                                             NSString *symlinkSrcPath = [[NSString alloc]initWithUTF8String:absolute_path.c_str()];
+                                                            if(symlinkSrcPath)
+                                                            {
+                                                                is_symbolic_link = [fm createSymbolicLinkAtPath:symlinkSrcPath
+                                                                         withDestinationPath:symlinkDstPath error:nil];
+                                                                [symlinkSrcPath release];
+                                                            }
+                                                            [symlinkDstPath release];
+                                                        }
                                                         
-                                                        is_symbolic_link = true;
                                                     }
                                                     
                                                     mz_zip_entry_close(h->zip_handle);
