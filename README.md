@@ -9,7 +9,7 @@ this version replaces the original [madler/zlib/minizip](https://github.com/madl
 
 * multiple input for ``Zip`` (``C_TEXT`` or stringified ``C_COLLECTION``)
 
-* password protected zip (on files, not folders, for Mac Archive Utility)
+* password protected zip (~~on files, not folders, for Mac Archive Utility~~)
 
 * LZMA ``ZIP_7Z`` specify ".7z" as the output path
 
