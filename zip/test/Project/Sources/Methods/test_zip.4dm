@@ -7,19 +7,17 @@
 
 $pass:="password"
 
-If (False:C215)
-	$src:=System folder:C487(Desktop:K41:16)+"test"
-	$dst:=System folder:C487(Desktop:K41:16)+Current method name:C684+".zip"
-	$start:=Milliseconds:C459
-	$success:=Zip ($src;$dst;$pass;ZIP_Compression_level_2;ZIP_With_attributes)
-	$duration:=Milliseconds:C459-$start
-Else 
-	$src:=System folder:C487(Desktop:K41:16)+Current method name:C684+".zip"
-	$dst:=System folder:C487(Desktop:K41:16)
-	$start:=Milliseconds:C459
-	$success:=Unzip ($src;$dst;$pass;ZIP_With_attributes)
-	$duration:=Milliseconds:C459-$start
-End if 
+$src:=System folder:C487(Applications or program files:K41:17)+"4D"+Folder separator:K24:12+"4D v17 R6"+Folder separator:K24:12+"4D.app"
+$dst:=System folder:C487(Desktop:K41:16)+Current method name:C684+".zip"
+$start:=Milliseconds:C459
+$success:=Zip ($src;$dst;$pass;ZIP_Compression_level_2)
+$duration:=Milliseconds:C459-$start
+
+$src:=System folder:C487(Desktop:K41:16)+Current method name:C684+".zip"
+$dst:=System folder:C487(Desktop:K41:16)
+$start:=Milliseconds:C459
+$success:=Unzip ($src;$dst;$pass)
+$duration:=Milliseconds:C459-$start
 
   //$dst:=System folder(Desktop)+Current method name+".7z"
   //$success:=Zip ($src;$dst;$pass;0;ZIP_7Z)

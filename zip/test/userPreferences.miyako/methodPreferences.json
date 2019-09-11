@@ -189,13 +189,13 @@
 		"stamp": "2019-07-07T00:13:49.000Z"
 	},
 	"Sources/Methods/test_zip.4dm": {
-		"startSelection": 0,
-		"endSelection": 0,
-		"firstSelectedLine": 5,
-		"lastSelectedLine": 5,
+		"startSelection": 44,
+		"endSelection": 44,
+		"firstSelectedLine": 21,
+		"lastSelectedLine": 21,
 		"folding": [],
 		"bookmarks": [],
-		"stamp": "2019-09-10T04:49:56.875Z"
+		"stamp": "2019-09-11T17:25:46.204Z"
 	},
 	"Sources/Methods/test_password.4dm": {
 		"startSelection": 40,
