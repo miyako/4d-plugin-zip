@@ -189,13 +189,13 @@
 		"stamp": "2019-07-07T00:13:49.000Z"
 	},
 	"Sources/Methods/test_zip.4dm": {
-		"startSelection": 44,
-		"endSelection": 44,
-		"firstSelectedLine": 21,
-		"lastSelectedLine": 21,
+		"startSelection": 0,
+		"endSelection": 0,
+		"firstSelectedLine": 0,
+		"lastSelectedLine": 0,
 		"folding": [],
 		"bookmarks": [],
-		"stamp": "2019-09-11T17:25:46.204Z"
+		"stamp": "2019-09-11T17:25:46.000Z"
 	},
 	"Sources/Methods/test_password.4dm": {
 		"startSelection": 40,
@@ -205,5 +205,14 @@
 		"folding": [],
 		"bookmarks": [],
 		"stamp": "2019-08-30T06:50:59.334Z"
+	},
+	"Sources/Methods/Method11.4dm": {
+		"startSelection": 29,
+		"endSelection": 29,
+		"firstSelectedLine": 11,
+		"lastSelectedLine": 11,
+		"folding": [],
+		"bookmarks": [],
+		"stamp": "2019-09-27T15:03:59.970Z"
 	}
 }

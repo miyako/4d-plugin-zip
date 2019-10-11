@@ -12,5 +12,12 @@
 			"type": 1,
 			"methodName": "test_zip"
 		}
+	},
+	{
+		"line": 11,
+		"method": {
+			"type": 1,
+			"methodName": "Method11"
+		}
 	}
 ]

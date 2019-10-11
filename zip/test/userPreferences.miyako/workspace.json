@@ -2,11 +2,14 @@
 	"editors": [
 		{
 			"type": "method",
-			"id": 2147483647,
+			"id": 2147483641,
 			"codeDescriptor": {
 				"type": 1,
-				"methodName": "test_zip"
+				"methodName": "Method11"
 			}
+		},
+		{
+			"type": "explorer"
 		}
 	]
 }
