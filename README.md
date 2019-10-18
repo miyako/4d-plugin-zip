@@ -37,20 +37,6 @@ this version replaces the original [madler/zlib/minizip](https://github.com/madl
 
 ![preemption xx](https://user-images.githubusercontent.com/1725068/41327179-4e839948-6efd-11e8-982b-a670d511e04f.png)
 
-### Releases
-
-[3.4](https://github.com/miyako/4d-plugin-zip/releases/tag/3.4) update minizip version (``2.8.9``)
-
-[2.5](https://github.com/miyako/4d-plugin-zip/releases/tag/2.5) better processing of symblic links (unzipping apps)
-
-[2.3](https://github.com/miyako/4d-plugin-zip/releases/tag/2.3) review path parse code for windows
-
-[2.2](https://github.com/miyako/4d-plugin-zip/releases/tag/2.2) return error value on unzip
-
-[2.1](https://github.com/miyako/4d-plugin-zip/releases/tag/2.1) added missing callback support for unzip
-
-[2.0](https://github.com/miyako/4d-plugin-zip/releases/tag/2.0)
-
 ```
 success:=Zip (src;dst;pass;level;options;callback;codepage)
 ```
