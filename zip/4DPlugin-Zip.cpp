@@ -571,14 +571,20 @@ void Unzip(PA_PluginParameters params) {
                         if (err == MZ_OK)
                         {
                             num_of_file++;
+                        }else{
+                            if(number_entry != num_of_file){
+                              returnValue.setIntValue(0);//!mz_zip_reader_goto_next_entry
+                            }
                         }
                     }
-                    
-                    
                 }
                 while (err == MZ_OK && !abortedByCallbackMethod);
+            }else{
+                returnValue.setIntValue(0);//!mz_zip_reader_goto_first_entry
             }
             
+        }else{
+            returnValue.setIntValue(0);//!mz_zip_get_number_entry
         }
         
     unzip_abort_transfer:
