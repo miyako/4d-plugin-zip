@@ -1,9 +1,16 @@
+![version](https://img.shields.io/badge/version-16%2B-8331AE)
+![platform](https://img.shields.io/static/v1?label=platform&message=osx-64%20|%20win-32%20|%20win-64&color=blue)
+[![license](https://img.shields.io/github/license/miyako/4d-plugin-zip)](LICENSE)
+![downloads](https://img.shields.io/github/downloads/miyako/4d-plugin-zip/total)
+
 # 4d-plugin-zip
 4D plugin to zip and unzip.
 
 the previous version is under the [classic-minizip](https://github.com/miyako/4d-plugin-zip/tree/classic-minizip) branch
 
 this version replaces the original [madler/zlib/minizip](https://github.com/madler/zlib/tree/master/contrib/minizip) with the [nmoinvaz/minizip](https://github.com/nmoinvaz/minizip) implementation
+
+To use on v16 or v17, move manifest.json to contents.
 
 ### Features
 
