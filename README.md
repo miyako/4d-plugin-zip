@@ -3,7 +3,7 @@
 [![license](https://img.shields.io/github/license/miyako/4d-plugin-zip)](LICENSE)
 ![downloads](https://img.shields.io/github/downloads/miyako/4d-plugin-zip/total)
 
-To use on v16 or earlier, move manifest.json to contents
+**Note**: for v17 and earlier, move `manifest.json` to `Contents`
 
 # 4d-plugin-zip
 4D plugin to zip and unzip.
