@@ -14,8 +14,6 @@ the previous version is under the [classic-minizip](https://github.com/miyako/4d
 
 this version replaces the original [madler/zlib/minizip](https://github.com/madler/zlib/tree/master/contrib/minizip) with the [nmoinvaz/minizip](https://github.com/nmoinvaz/minizip) implementation
 
-To use on v16 or v17, move manifest.json to contents.
-
 ### Features
 
 * multiple input for ``Zip`` (``C_TEXT`` or stringified ``C_COLLECTION``)
