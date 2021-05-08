@@ -5,6 +5,8 @@
 
 **Note**: for v17 and earlier, move `manifest.json` to `Contents`
 
+see also [4d-plugin-archive](https://github.com/miyako/4d-plugin-archive)
+
 # 4d-plugin-zip
 4D plugin to zip and unzip.
 
