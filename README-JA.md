@@ -1,6 +1,6 @@
-###Zip
+### Zip
 
-```
+```4d
 success:=Zip (src;dst;pass;level;options;callback;codepage)
 ```
 
@@ -72,16 +72,16 @@ total|REAL|ファイル・フォルダーの合計数
 
 ``abort``に``True``が返されると処理を中断します。
 
-###Unzip
+### Unzip
 
-```
+```4d
 result:=Unzip (src;dst;pass;options;callback;codepage)
 ```
 
 パラメーター|タイプ|説明
 ------------|------|----
-src|TEXT|圧縮したいフォルダーまたはファイルのフルパス名
-dst|TEXT|作成する圧縮ファイルのフルパス名
+src|TEXT|圧縮ファイルのフルパス名
+dst|TEXT|内容を展開するフォルダーのフルパス名
 pass|TEXT|パスワード（設定されている場合）
 options|INT32|フラグの組み合わせ
 callback|TEXT|コールバックとして使用するプロジェクトメソッド名
@@ -95,9 +95,9 @@ codepage|INT32|コードページ（デフォルト:``0``=UTF-8, ``Zip_Charset_a
 
 ``ZIP_With_attributes``
 
-####コールバックメソッドの引数
+#### コールバックメソッドの引数
 
-```
+```4d
 abort:=Callback (pathRelative;pathAbsolute;pass;total;sizeCompressed;sizeUncompressed)
 ```
 
