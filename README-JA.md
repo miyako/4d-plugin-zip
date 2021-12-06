@@ -57,7 +57,7 @@ AESで暗号化します。
 
 処理が中断された場合，``success``に``0``が返されます。
 
-####コールバックメソッドの引数
+#### コールバックメソッドの引数
 
 ```
 abort:=Callback (pathRelative;pathAbsolute;pass;total)
