@@ -420,8 +420,12 @@ void Unzip(PA_PluginParameters params) {
                                 {
                                     create_parent_folder(absolute_path);
                                     
-                                    //a folder (by path)
-                                    if(relative_path.at(relative_path.size() - 1) == folder_separator)
+                                    //a folder (by path) -- zip entries always use '/' as the
+                                    //path separator regardless of platform; relative_path is
+                                    //built straight from zi->filename and is never converted
+                                    //to the native folder_separator, so compare against the
+                                    //literal zip-spec separator, not the platform one
+                                    if(relative_path.at(relative_path.size() - 1) == '/')
                                     {
                                         create_folder(absolute_path);
                                         is_directory = true;

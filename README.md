@@ -3,6 +3,8 @@
 [![license](https://img.shields.io/github/license/miyako/4d-plugin-zip)](LICENSE)
 ![downloads](https://img.shields.io/github/downloads/miyako/4d-plugin-zip/total)
 
+# 4d-plugin-zip
+
 Compresses files/folders into a `.zip` archive and extracts `.zip` archives back to disk. Under the hood it drives the [nmoinvaz/minizip (minizip-ng)](https://github.com/nmoinvaz/minizip) engine (replacing the plugin's earlier `madler/zlib/minizip` implementation), plus native OS APIs for file attributes, symlinks, and legacy code‑page handling. Both commands return a `Longint` (`1` success / `0` failure) and can drive a progress callback method of your own.
 
 | Command | Returns | Purpose |
