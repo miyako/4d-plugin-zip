@@ -215,6 +215,9 @@ void Unzip(PA_PluginParameters params) {
                 
                 do
                 {
+#if VERSIONMAC
+                    @autoreleasepool {
+#endif
                     err = mz_zip_reader_entry_get_info(reader, &zi);
                     
                     if (err == MZ_OK)
@@ -393,8 +396,8 @@ void Unzip(PA_PluginParameters params) {
                                 PA_YieldAbsolute();
                             }
                             
-                            PA_Variable cbparams;
-                            bool isProcessDying = PA_GetBooleanVariable(PA_ExecuteCommandByID(672/* Process aborted */, &cbparams, 0));
+                            PA_Variable abortCheckResult;
+                            bool isProcessDying = PA_GetBooleanVariable(PA_ExecuteCommandByID(672/* Process aborted */, &abortCheckResult, 0));
                             /* PA_IsProcessDying is not threadSafe */
                             
                             if(isProcessDying)
@@ -444,7 +447,7 @@ void Unzip(PA_PluginParameters params) {
                                                 if (err == MZ_OK)
                                                 {
                                                     int32_t len = mz_zip_reader_entry_read(reader, &_buf[0], PATH_MAX);
-                                                    NSString *symlinkDstPath =[[NSString alloc]initWithBytes:&_buf[0] length:len encoding:NSUTF8StringEncoding];
+                                                    NSString *symlinkDstPath = (len > 0) ? [[NSString alloc]initWithBytes:&_buf[0] length:(NSUInteger)len encoding:NSUTF8StringEncoding] : nil;
                                                     
                                                     if(symlinkDstPath)
                                                     {
@@ -577,6 +580,9 @@ void Unzip(PA_PluginParameters params) {
                             }
                         }
                     }
+#if VERSIONMAC
+                    }
+#endif
                 }
                 while (err == MZ_OK && !abortedByCallbackMethod);
             }else{
@@ -608,6 +614,8 @@ void Unzip(PA_PluginParameters params) {
         }
 #endif
         mz_zip_reader_close(reader);
+    }else{
+        returnValue.setIntValue(0);//!mz_zip_reader_open_file
     }
     
     mz_zip_reader_delete((void **)&reader);
@@ -778,6 +786,9 @@ void Zip(PA_PluginParameters params) {
             
             for (unsigned int i = 0; i < relative_paths.size(); ++i)
             {
+#if VERSIONMAC
+                @autoreleasepool {
+#endif
                 relative_path_t relative_path = relative_paths.at(i);
                 absolute_path_t absolute_path = absolute_paths.at(i);
                 relative_path_t relative_path_utf8 = relative_path;
@@ -968,8 +979,8 @@ void Zip(PA_PluginParameters params) {
                     }
                     
                     
-                    PA_Variable params;
-                    bool isProcessDying = PA_GetBooleanVariable(PA_ExecuteCommandByID(672/* Process aborted */, &params, 0));
+                    PA_Variable abortCheckResult;
+                    bool isProcessDying = PA_GetBooleanVariable(PA_ExecuteCommandByID(672/* Process aborted */, &abortCheckResult, 0));
                     /* PA_IsProcessDying is not threadSafe */
                     
                     if(isProcessDying)
@@ -980,7 +991,9 @@ void Zip(PA_PluginParameters params) {
                     }
                     
                 }
-
+#if VERSIONMAC
+                }
+#endif
             }/* for (unsigned int i = 0; i < relative_paths.size(); ++i) */
             
         zip_abort_transfer:
@@ -997,6 +1010,8 @@ void Zip(PA_PluginParameters params) {
 #endif
             mz_zip_writer_close(writer);
             
+        }else{
+            returnValue.setIntValue(0);//!mz_zip_writer_open_file
         }/*  if (err == MZ_OK) */
         mz_zip_writer_delete((void **)&writer);
     }
@@ -1180,13 +1195,16 @@ void escape_path(wstring &path) {
             path.at(i) = L'/';
 }
 
+#define MAX_FOLDER_RECURSION_DEPTH 512
+
 void get_subpaths(wstring& path,
                   absolute_paths_t *absolute_paths,
                   relative_paths_t *relative_paths,
                   relative_path_t& folder_name,
                   bool ignore_dot,
                   bool without_enclosing_folder,
-                  size_t absolutePathOffset = 0) {
+                  size_t absolutePathOffset = 0,
+                  unsigned int depth = 0) {
     
     WIN32_FIND_DATA find;
     
@@ -1241,7 +1259,8 @@ void get_subpaths(wstring& path,
                                  folder_name,
                                  ignore_dot,
                                  without_enclosing_folder,
-                                 absolutePathOffset);
+                                 absolutePathOffset,
+                                 depth + 1);
                     
                 }else{
                     /* not top level */
@@ -1271,13 +1290,17 @@ void get_subpaths(wstring& path,
                             relative_paths->push_back(relative_path.substr(folder_name.length()));
                         }
                         
-                        get_subpaths(absolute_path /* + sub_path */ + L"\\*",
-                                     absolute_paths,
-                                     relative_paths,
-                                     folder_name,
-                                     ignore_dot,
-                                     without_enclosing_folder,
-                                     absolutePathOffset);
+                        if(depth < MAX_FOLDER_RECURSION_DEPTH)
+                        {
+                            get_subpaths(absolute_path /* + sub_path */ + L"\\*",
+                                         absolute_paths,
+                                         relative_paths,
+                                         folder_name,
+                                         ignore_dot,
+                                         without_enclosing_folder,
+                                         absolutePathOffset,
+                                         depth + 1);
+                        }
                         
                     }
                     
@@ -1428,6 +1451,7 @@ void get_subpaths(absolute_path_t& spath,
                     time_t startTime = time(0);
                     
                     while(NSURL *u = [dirEnum nextObject]){
+                        @autoreleasepool {
                         
                         time_t now = time(0);
                         time_t elapsedTime = abs(startTime - now);
@@ -1462,6 +1486,7 @@ void get_subpaths(absolute_path_t& spath,
                                 relative_paths->push_back([[fullPath substringFromIndex:[basePath length]]UTF8String]);
                             }
                         }
+                        }
                     }
                 }
         }//attributes
@@ -1492,6 +1517,7 @@ void get_subpaths(absolute_path_t& spath,
                 time_t startTime = time(0);
                 
                 for(NSUInteger i = 0; i < [paths count]; i++){
+                    @autoreleasepool {
                     
                     time_t now = time(0);
                     time_t elapsedTime = abs(startTime - now);
@@ -1524,6 +1550,7 @@ void get_subpaths(absolute_path_t& spath,
                                 relative_paths->push_back([itemPath UTF8String]);
                             }
                         }
+                    }
                     }
                 }
                 
