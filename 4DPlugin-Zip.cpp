@@ -111,8 +111,8 @@ void Unzip(PA_PluginParameters params) {
     
     if(method_id)
     {
-        cbparams[0] = PA_CreateVariable(eVK_Unistring);
-        cbparams[1] = PA_CreateVariable(eVK_Unistring);
+        cbparams[0] = PA_CreateVariable(eVK_Undefined);
+        cbparams[1] = PA_CreateVariable(eVK_Undefined);
         cbparams[2] = PA_CreateVariable(eVK_Real);
         cbparams[3] = PA_CreateVariable(eVK_Real);
         cbparams[4] = PA_CreateVariable(eVK_Real);
@@ -122,8 +122,8 @@ void Unzip(PA_PluginParameters params) {
     }else{
         cbparams[0] = PA_CreateVariable(eVK_Unistring);
         cbparams[1] = PA_CreateVariable(eVK_Boolean);
-        cbparams[2] = PA_CreateVariable(eVK_Unistring);
-        cbparams[3] = PA_CreateVariable(eVK_Unistring);
+        cbparams[2] = PA_CreateVariable(eVK_Undefined);
+        cbparams[3] = PA_CreateVariable(eVK_Undefined);
         cbparams[4] = PA_CreateVariable(eVK_Real);
         cbparams[5] = PA_CreateVariable(eVK_Real);
         cbparams[6] = PA_CreateVariable(eVK_Real);
@@ -349,9 +349,11 @@ void Unzip(PA_PluginParameters params) {
                                     C_TEXT tempUstr;
                                     tempUstr.setUTF8String((const uint8_t *)relative_path.c_str(), (uint32_t)relative_path.length());
                                     PA_Unistring methodParam1 = PA_CreateUnistring((PA_Unichar *)tempUstr.getUTF16StringPtr());
+                                    PA_ClearVariable(&cbparams[0]);
                                     PA_SetStringVariable(&cbparams[0], &methodParam1);
                                     tempUstr.setUTF8String((const uint8_t *)absolute_path.c_str(), (uint32_t)absolute_path.length());
                                     PA_Unistring methodParam2 = PA_CreateUnistring((PA_Unichar *)tempUstr.getUTF16StringPtr());
+                                    PA_ClearVariable(&cbparams[1]);
                                     PA_SetStringVariable(&cbparams[1], &methodParam2);
                                     
                                     PA_SetRealVariable(&cbparams[2], num_of_file);
@@ -361,8 +363,12 @@ void Unzip(PA_PluginParameters params) {
                                     
                                     PA_Variable result = PA_ExecuteMethodByID(method_id, cbparams, 6);
                                     
-                                    if(PA_GetVariableKind(result) == eVK_Boolean)
-                                        abortedByCallbackMethod = PA_GetBooleanVariable(result);
+                                    if(PA_GetLastError() == eER_NoErr)
+                                    {
+                                        if(PA_GetVariableKind(result) == eVK_Boolean)
+                                            abortedByCallbackMethod = PA_GetBooleanVariable(result);
+                                        PA_ClearVariable(&result);
+                                    }
                                     
                                 }else
                                 {
@@ -377,9 +383,11 @@ void Unzip(PA_PluginParameters params) {
                                     C_TEXT tempUstr;
                                     tempUstr.setUTF8String((const uint8_t *)relative_path.c_str(), (uint32_t)relative_path.length());
                                     PA_Unistring methodParam1 = PA_CreateUnistring((PA_Unichar *)tempUstr.getUTF16StringPtr());
+                                    PA_ClearVariable(&cbparams[2]);
                                     PA_SetStringVariable(&cbparams[2], &methodParam1);
                                     tempUstr.setUTF8String((const uint8_t *)absolute_path.c_str(), (uint32_t)absolute_path.length());
                                     PA_Unistring methodParam2 = PA_CreateUnistring((PA_Unichar *)tempUstr.getUTF16StringPtr());
+                                    PA_ClearVariable(&cbparams[3]);
                                     PA_SetStringVariable(&cbparams[3], &methodParam2);
                                     
                                     PA_SetRealVariable(&cbparams[4], num_of_file);
@@ -396,8 +404,14 @@ void Unzip(PA_PluginParameters params) {
                                 PA_YieldAbsolute();
                             }
                             
-                            PA_Variable abortCheckResult;
-                            bool isProcessDying = PA_GetBooleanVariable(PA_ExecuteCommandByID(672/* Process aborted */, &abortCheckResult, 0));
+                            PA_Variable abortCheckParams;
+                            PA_Variable abortCheckResult = PA_ExecuteCommandByID(672/* Process aborted */, &abortCheckParams, 0);
+                            bool isProcessDying = false;
+                            if(PA_GetLastError() == eER_NoErr)
+                            {
+                                isProcessDying = PA_GetBooleanVariable(abortCheckResult);
+                                PA_ClearVariable(&abortCheckResult);
+                            }
                             /* PA_IsProcessDying is not threadSafe */
                             
                             if(isProcessDying)
@@ -599,15 +613,6 @@ void Unzip(PA_PluginParameters params) {
         
     unzip_abort_transfer:
         
-        PA_ClearVariable(&cbparams[0]);
-        PA_ClearVariable(&cbparams[1]);
-        PA_ClearVariable(&cbparams[2]);
-        PA_ClearVariable(&cbparams[3]);
-        PA_ClearVariable(&cbparams[4]);
-        PA_ClearVariable(&cbparams[5]);
-        PA_ClearVariable(&cbparams[6]);
-        PA_ClearVariable(&cbparams[7]);
-        
 #if VERSIONMAC
         
         [fm release];
@@ -623,6 +628,11 @@ void Unzip(PA_PluginParameters params) {
     }
     
     mz_zip_reader_delete((void **)&reader);
+    
+    for(int i = 0; i < 8; ++i)
+    {
+        PA_ClearVariable(&cbparams[i]);
+    }
     
 #if VERSIONWIN
     if(mlang)
@@ -739,8 +749,8 @@ void Zip(PA_PluginParameters params) {
     
     if(method_id)
     {
-        cbparams[0] = PA_CreateVariable(eVK_Unistring);
-        cbparams[1] = PA_CreateVariable(eVK_Unistring);
+        cbparams[0] = PA_CreateVariable(eVK_Undefined);
+        cbparams[1] = PA_CreateVariable(eVK_Undefined);
         cbparams[2] = PA_CreateVariable(eVK_Real);
         cbparams[3] = PA_CreateVariable(eVK_Real);
         cbparams[4] = PA_CreateVariable(eVK_Undefined);
@@ -748,8 +758,8 @@ void Zip(PA_PluginParameters params) {
     }else{
         cbparams[0] = PA_CreateVariable(eVK_Unistring);
         cbparams[1] = PA_CreateVariable(eVK_Boolean);
-        cbparams[2] = PA_CreateVariable(eVK_Unistring);
-        cbparams[3] = PA_CreateVariable(eVK_Unistring);
+        cbparams[2] = PA_CreateVariable(eVK_Undefined);
+        cbparams[3] = PA_CreateVariable(eVK_Undefined);
         cbparams[4] = PA_CreateVariable(eVK_Real);
         cbparams[5] = PA_CreateVariable(eVK_Real);
         PA_SetUnistring((&(cbparams[0].uValue.fString)),
@@ -934,9 +944,11 @@ void Zip(PA_PluginParameters params) {
                             C_TEXT tempUstr;
                             tempUstr.setUTF8String((const uint8_t *)relative_path_utf8.c_str(), (uint32_t)relative_path_utf8.length());
                             PA_Unistring methodParam1 = PA_CreateUnistring((PA_Unichar *)tempUstr.getUTF16StringPtr());
+                            PA_ClearVariable(&cbparams[0]);
                             PA_SetStringVariable(&cbparams[0], &methodParam1);
                             tempUstr.setUTF8String((const uint8_t *)absolute_path.c_str(), (uint32_t)absolute_path.length());
                             PA_Unistring methodParam2 = PA_CreateUnistring((PA_Unichar *)tempUstr.getUTF16StringPtr());
+                            PA_ClearVariable(&cbparams[1]);
                             PA_SetStringVariable(&cbparams[1], &methodParam2);
                             
                             PA_SetRealVariable(&cbparams[2], i+1);
@@ -944,8 +956,12 @@ void Zip(PA_PluginParameters params) {
                             
                             PA_Variable result = PA_ExecuteMethodByID(method_id, cbparams, 4);
                             
-                            if(PA_GetVariableKind(result) == eVK_Boolean)
-                                abortedByCallbackMethod = PA_GetBooleanVariable(result);
+                            if(PA_GetLastError() == eER_NoErr)
+                            {
+                                if(PA_GetVariableKind(result) == eVK_Boolean)
+                                    abortedByCallbackMethod = PA_GetBooleanVariable(result);
+                                PA_ClearVariable(&result);
+                            }
                             
                         }else
                         {
@@ -960,9 +976,11 @@ void Zip(PA_PluginParameters params) {
                             C_TEXT tempUstr;
                             tempUstr.setUTF8String((const uint8_t *)relative_path_utf8.c_str(), (uint32_t)relative_path_utf8.length());
                             PA_Unistring methodParam1 = PA_CreateUnistring((PA_Unichar *)tempUstr.getUTF16StringPtr());
+                            PA_ClearVariable(&cbparams[2]);
                             PA_SetStringVariable(&cbparams[2], &methodParam1);
                             tempUstr.setUTF8String((const uint8_t *)absolute_path.c_str(), (uint32_t)absolute_path.length());
                             PA_Unistring methodParam2 = PA_CreateUnistring((PA_Unichar *)tempUstr.getUTF16StringPtr());
+                            PA_ClearVariable(&cbparams[3]);
                             PA_SetStringVariable(&cbparams[3], &methodParam2);
                             
                             PA_SetRealVariable(&cbparams[4], i+1);
@@ -983,8 +1001,14 @@ void Zip(PA_PluginParameters params) {
                     }
                     
                     
-                    PA_Variable abortCheckResult;
-                    bool isProcessDying = PA_GetBooleanVariable(PA_ExecuteCommandByID(672/* Process aborted */, &abortCheckResult, 0));
+                    PA_Variable abortCheckParams;
+                    PA_Variable abortCheckResult = PA_ExecuteCommandByID(672/* Process aborted */, &abortCheckParams, 0);
+                    bool isProcessDying = false;
+                    if(PA_GetLastError() == eER_NoErr)
+                    {
+                        isProcessDying = PA_GetBooleanVariable(abortCheckResult);
+                        PA_ClearVariable(&abortCheckResult);
+                    }
                     /* PA_IsProcessDying is not threadSafe */
                     
                     if(isProcessDying)
@@ -1002,13 +1026,6 @@ void Zip(PA_PluginParameters params) {
             
         zip_abort_transfer:
             
-            PA_ClearVariable(&cbparams[0]);
-            PA_ClearVariable(&cbparams[1]);
-            PA_ClearVariable(&cbparams[2]);
-            PA_ClearVariable(&cbparams[3]);
-            PA_ClearVariable(&cbparams[4]);
-            PA_ClearVariable(&cbparams[5]);
-            
 #if VERSIONMAC
             [fm release];
 #endif
@@ -1018,6 +1035,11 @@ void Zip(PA_PluginParameters params) {
             returnValue.setIntValue(0);//!mz_zip_writer_open_file
         }/*  if (err == MZ_OK) */
         mz_zip_writer_delete((void **)&writer);
+    }
+    
+    for(int i = 0; i < 6; ++i)
+    {
+        PA_ClearVariable(&cbparams[i]);
     }
     
 #if VERSIONWIN
